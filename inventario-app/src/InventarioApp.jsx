@@ -161,10 +161,38 @@ const ETIQUETAS_DEMO = [
 // ===========================================================================
 // PARSER DE BARCODE — Orden de Producción (8 dígitos) + Código Robot (4 dígitos)
 // ===========================================================================
+// Nunca bloquea el escaneo, solo interpreta lo que puede. Antes, cualquier
+// código que no tuviera EXACTAMENTE 12 dígitos se rechazaba por completo
+// (incluyendo los de 20 dígitos de las etiquetas "tarima", y cualquier QR)
+// — eso hacía inservible "Con etiqueta" para varios formatos reales de
+// planta. Ahora reconoce los formatos conocidos y, si no reconoce ninguno,
+// deja pasar igual el código crudo (se completa el resto a mano).
 function parseBarcode(raw) {
-  const clean = raw.replace(/\D/g, "");
-  if (clean.length !== 12) return { ok: false, error: "El código debe tener 12 dígitos (orden + robot)." };
-  return { ok: true, ordenProduccion: clean.slice(0, 8), codigoRobot: clean.slice(8, 12) };
+  const clean = (raw || "").replace(/\D/g, "");
+  if (!clean) {
+    return { ok: false, error: "No se detectaron dígitos en el código escaneado." };
+  }
+  if (clean.length === 12) {
+    return {
+      ok: true, formatoBarcode: "agrupador-12",
+      ordenProduccion: clean.slice(0, 8), codigoRobot: clean.slice(8, 12),
+      detalleTecnico: `Código de 12 dígitos → formato "agrupador": Orden ${clean.slice(0, 8)} + Robot ${clean.slice(8, 12)}.`,
+    };
+  }
+  if (clean.length === 20) {
+    // Posiciones confirmadas contra una etiqueta real de muestra (SKU
+    // 000353 / tarima 9005). Si con más etiquetas esto no cuadra, avisa
+    // para recalibrar las posiciones en vez de asumir que siempre aplican.
+    return {
+      ok: true, formatoBarcode: "tarima-20",
+      productoId: clean.slice(6, 12), numeroTarima: clean.slice(16, 20),
+      detalleTecnico: `Código de 20 dígitos → formato "tarima": SKU ${clean.slice(6, 12)} (posiciones 6-11), Núm. Tarima ${clean.slice(16, 20)} (posiciones 16-19).`,
+    };
+  }
+  return {
+    ok: true, formatoBarcode: "desconocido",
+    detalleTecnico: `Código de ${clean.length} dígitos — no coincide con los formatos conocidos (12 o 20). Se guardó el código tal cual; completa SKU y fecha a mano.`,
+  };
 }
 
 function formatFecha(iso) {
@@ -510,6 +538,9 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
             <div className="mono text-[11px] text-[#8A9389] mt-1">
               Orden {etiqueta.ordenProduccion || "—"} · Línea {etiqueta.linea || "—"}
             </div>
+            {etiqueta.detalleTecnico && (
+              <div className="text-[10px] text-[#6E776A] mt-1">{etiqueta.detalleTecnico}</div>
+            )}
           </div>
           <button onClick={onCancelar} className="text-[#6E776A] hover:text-[#EDEAE2]">
             <X size={20} />
@@ -1656,7 +1687,8 @@ export default function InventarioApp() {
     const match = ETIQUETAS_DEMO.find((e) => e.barcode === limpio);
     setPendiente(match ? { ...match, ...parsed } : {
       barcode: limpio, productoId: "?", agrupadorCaducidad: null,
-      linea: "DESCONOCIDA", fechaProduccion: null, cajasXPalet: null, diasVida: null, ...parsed,
+      linea: "DESCONOCIDA", fechaProduccion: null, cajasXPalet: null, diasVida: null,
+      ...parsed, // si el código trae productoId (formato "tarima"), pisa el "?" de arriba
     });
     setFlashOk(true);
     setTimeout(() => setFlashOk(false), 380);
@@ -1835,24 +1867,23 @@ export default function InventarioApp() {
         {vista === "escaner" && (
           <div className="space-y-4">
             {!esRetornable && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setModoEscaneo("camara")}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-medium ${modoEscaneo === "camara" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${modoEscaneo === "camara" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
                 >
-                  <Scan size={15} /> Con etiqueta
+                  <Scan size={16} /> Con etiqueta
                 </button>
-                <button
-                  onClick={() => setModoEscaneo("inteligente")}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-medium ${modoEscaneo === "inteligente" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
-                >
-                  <Camera size={15} /> Inteligente
-                </button>
+                {/* Modo "Inteligente" (OCR) oculto por ahora — no daba
+                    resultados confiables en pruebas reales de planta.
+                    El código sigue existiendo (componente EscaneoInteligente
+                    más abajo) por si se retoma más adelante; solo se quitó
+                    el botón para que nadie lo use mientras tanto. */}
                 <button
                   onClick={() => setModoEscaneo("manual")}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-medium ${modoEscaneo === "manual" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${modoEscaneo === "manual" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
                 >
-                  <PenLine size={15} /> Sin etiqueta
+                  <PenLine size={16} /> Sin etiqueta
                 </button>
               </div>
             )}
