@@ -121,6 +121,9 @@ export function capturarFrameDeVideo(videoEl) {
   const c = document.createElement("canvas");
   c.width = videoEl.videoWidth;
   c.height = videoEl.videoHeight;
+  if (c.width === 0 || c.height === 0) {
+    throw new Error("El video de la cámara aún no tenía un frame listo (videoWidth/Height = 0)");
+  }
   c.getContext("2d").drawImage(videoEl, 0, 0, c.width, c.height);
   return c;
 }
@@ -140,92 +143,121 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
   const anchoImagen = canvasOriginal.width;
   const altoImagen = canvasOriginal.height;
   const resultado = {};
+  const erroresPorCampo = {};
+
+  // Cada campo se extrae en su propio try/catch: si uno falla (p. ej. un
+  // recorte con coordenadas inválidas por un encuadre distinto al de
+  // prueba), NO debe tirar a la basura los campos que sí se leyeron bien.
+  // Antes, un solo error aquí abortaba toda la función y regresaba todo
+  // vacío — este era probablemente el motivo real de "datos vacíos".
 
   // --- SKU: número grande justo debajo de la palabra "PRODUCTO" ---
-  const wProducto = buscarPalabra(palabras, "PRODUCTO");
-  if (wProducto) {
-    const alto = wProducto.bbox.y1 - wProducto.bbox.y0;
-    const r = await releerRegion(worker, canvasOriginal, {
-      x0: wProducto.bbox.x0 - alto,
-      x1: wProducto.bbox.x1 + alto,
-      y0: wProducto.bbox.y1,
-      y1: wProducto.bbox.y1 + alto * 2.4,
-    }, { whitelist: "0123456789" });
-    const digitos = r.texto.replace(/\D/g, "");
-    if (digitos) resultado.sku = { valor: digitos, confianza: r.confianza, fuente: "ocr" };
-  }
+  try {
+    const wProducto = buscarPalabra(palabras, "PRODUCTO");
+    if (wProducto) {
+      const alto = wProducto.bbox.y1 - wProducto.bbox.y0;
+      const r = await releerRegion(worker, canvasOriginal, {
+        x0: wProducto.bbox.x0 - alto,
+        x1: wProducto.bbox.x1 + alto,
+        y0: wProducto.bbox.y1,
+        y1: wProducto.bbox.y1 + alto * 2.4,
+      }, { whitelist: "0123456789" });
+      const digitos = r.texto.replace(/\D/g, "");
+      if (digitos) resultado.sku = { valor: digitos, confianza: r.confianza, fuente: "ocr" };
+    }
+  } catch (err) { erroresPorCampo.sku = String(err?.message || err); }
 
   // --- Centro: token corto en mayúsculas en la esquina superior de la etiqueta ---
-  const candidatoCentro = palabras.find(
-    (p) => p.bbox.y1 < altoImagen * 0.12 && /^[A-Z]{3,6}$/.test(normaliza(p.texto))
-  );
-  if (candidatoCentro) {
-    resultado.centro = { valor: normaliza(candidatoCentro.texto), confianza: candidatoCentro.confianza, fuente: "ocr" };
-  }
+  try {
+    const candidatoCentro = palabras.find(
+      (p) => p.bbox.y1 < altoImagen * 0.12 && /^[A-Z]{3,6}$/.test(normaliza(p.texto))
+    );
+    if (candidatoCentro) {
+      resultado.centro = { valor: normaliza(candidatoCentro.texto), confianza: candidatoCentro.confianza, fuente: "ocr" };
+    }
+  } catch (err) { erroresPorCampo.centro = String(err?.message || err); }
 
   // --- Línea de producción ---
-  const wLinea = buscarPalabra(palabras, "LINEA");
-  if (wLinea) {
-    const alto = wLinea.bbox.y1 - wLinea.bbox.y0;
-    const r = await releerRegion(worker, canvasOriginal, {
-      x0: wLinea.bbox.x1,
-      x1: wLinea.bbox.x1 + alto * 7,
-      y0: wLinea.bbox.y0 - alto * 0.3,
-      y1: wLinea.bbox.y1 + alto * 0.3,
-    }, { whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:" });
-    const m = r.texto.match(/([A-Z]+)[:\s]*([0-9O]{2,4})/i);
-    if (m) {
-      resultado.linea = {
-        valor: `${m[1].toUpperCase()}${m[2].toUpperCase().replace(/O/g, "0")}`,
-        confianza: r.confianza, fuente: "ocr",
-      };
+  try {
+    const wLinea = buscarPalabra(palabras, "LINEA");
+    if (wLinea) {
+      const alto = wLinea.bbox.y1 - wLinea.bbox.y0;
+      const r = await releerRegion(worker, canvasOriginal, {
+        x0: wLinea.bbox.x1,
+        x1: wLinea.bbox.x1 + alto * 7,
+        y0: wLinea.bbox.y0 - alto * 0.3,
+        y1: wLinea.bbox.y1 + alto * 0.3,
+      }, { whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:" });
+      const m = r.texto.match(/([A-Z]+)[:\s]*([0-9O]{2,4})/i);
+      if (m) {
+        resultado.linea = {
+          valor: `${m[1].toUpperCase()}${m[2].toUpperCase().replace(/O/g, "0")}`,
+          confianza: r.confianza, fuente: "ocr",
+        };
+      }
     }
-  }
+  } catch (err) { erroresPorCampo.linea = String(err?.message || err); }
 
   // --- Cajas por tarima: número inmediatamente antes de la palabra "CAJAS" ---
-  const wCajas = buscarPalabra(palabras, "CAJAS");
-  if (wCajas) {
-    const idx = palabras.indexOf(wCajas);
-    const anterior = palabras[idx - 1];
-    if (anterior && /^\d+$/.test(anterior.texto.replace(/\D/g, "")) && anterior.texto.replace(/\D/g, "")) {
-      resultado.cajasXTarima = {
-        valor: parseInt(anterior.texto.replace(/\D/g, ""), 10),
-        confianza: anterior.confianza, fuente: "ocr",
-      };
+  try {
+    const wCajas = buscarPalabra(palabras, "CAJAS");
+    if (wCajas) {
+      const idx = palabras.indexOf(wCajas);
+      const anterior = palabras[idx - 1];
+      if (anterior && /^\d+$/.test(anterior.texto.replace(/\D/g, "")) && anterior.texto.replace(/\D/g, "")) {
+        resultado.cajasXTarima = {
+          valor: parseInt(anterior.texto.replace(/\D/g, ""), 10),
+          confianza: anterior.confianza, fuente: "ocr",
+        };
+      }
     }
-  }
+  } catch (err) { erroresPorCampo.cajasXTarima = String(err?.message || err); }
 
   // --- Orden de producción (referencia cruzada — el barcode manda) ---
-  const wOrden = buscarPalabra(palabras, "ORDEN");
-  if (wOrden) {
-    const candidato = palabras.find(
-      (p) => /^\d{6,9}$/.test(p.texto.replace(/\D/g, "")) &&
-        p.bbox.y0 >= wOrden.bbox.y0 - 5 && p.bbox.y0 <= wOrden.bbox.y1 + 15
-    );
-    if (candidato) {
-      resultado.ordenOCR = { valor: candidato.texto.replace(/\D/g, ""), confianza: candidato.confianza, fuente: "ocr" };
+  try {
+    const wOrden = buscarPalabra(palabras, "ORDEN");
+    if (wOrden) {
+      const candidato = palabras.find(
+        (p) => /^\d{6,9}$/.test(p.texto.replace(/\D/g, "")) &&
+          p.bbox.y0 >= wOrden.bbox.y0 - 5 && p.bbox.y0 <= wOrden.bbox.y1 + 15
+      );
+      if (candidato) {
+        resultado.ordenOCR = { valor: candidato.texto.replace(/\D/g, ""), confianza: candidato.confianza, fuente: "ocr" };
+      }
     }
-  }
+  } catch (err) { erroresPorCampo.ordenOCR = String(err?.message || err); }
 
   // --- Fecha y hora de producción ---
-  const wFecha = buscarPalabra(palabras, "FECHA");
-  if (wFecha) {
-    const wDe = palabras.find(
-      (p) => normaliza(p.texto) === "DE" && p.bbox.y0 >= wFecha.bbox.y0 - 5 && p.bbox.y0 <= wFecha.bbox.y1 + 5
-    ) || wFecha;
-    const alto = wFecha.bbox.y1 - wFecha.bbox.y0;
-    const r = await releerRegion(worker, canvasOriginal, {
-      x0: wDe.bbox.x1 + alto * 4,
-      x1: anchoImagen,
-      y0: wFecha.bbox.y0 - alto * 0.3,
-      y1: wFecha.bbox.y1 + alto * 0.3,
-    }, { whitelist: "0123456789/:" });
-    const m = r.texto.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})\D*(\d{1,2}:\d{2}(:\d{2})?)/);
-    if (m) {
-      resultado.fecha = { valor: m[1], confianza: r.confianza, fuente: "ocr" };
-      resultado.hora = { valor: m[2], confianza: r.confianza, fuente: "ocr" };
+  try {
+    const wFecha = buscarPalabra(palabras, "FECHA");
+    if (wFecha) {
+      const wDe = palabras.find(
+        (p) => normaliza(p.texto) === "DE" && p.bbox.y0 >= wFecha.bbox.y0 - 5 && p.bbox.y0 <= wFecha.bbox.y1 + 5
+      ) || wFecha;
+      const alto = wFecha.bbox.y1 - wFecha.bbox.y0;
+      const r = await releerRegion(worker, canvasOriginal, {
+        x0: wDe.bbox.x1 + alto * 4,
+        x1: anchoImagen,
+        y0: wFecha.bbox.y0 - alto * 0.3,
+        y1: wFecha.bbox.y1 + alto * 0.3,
+      }, { whitelist: "0123456789/:" });
+      const m = r.texto.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})\D*(\d{1,2}:\d{2}(:\d{2})?)/);
+      if (m) {
+        resultado.fecha = { valor: m[1], confianza: r.confianza, fuente: "ocr" };
+        resultado.hora = { valor: m[2], confianza: r.confianza, fuente: "ocr" };
+      }
     }
-  }
+  } catch (err) { erroresPorCampo.fecha = String(err?.message || err); }
+
+  // Info de diagnóstico — no se usa para llenar campos, solo para poder ver
+  // en la app (y mandarme captura) qué está leyendo realmente la cámara,
+  // sin necesidad de consola de desarrollador.
+  resultado._diagnostico = {
+    textoCrudo: dataGeneral.text || "(vacío)",
+    numPalabrasDetectadas: palabras.length,
+    tamanoImagen: `${anchoImagen}x${altoImagen}`,
+    errores: erroresPorCampo,
+  };
 
   return resultado;
 }

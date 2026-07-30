@@ -1348,15 +1348,14 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
               setPendienteLocal(pend);
               setFase("revision");
             } catch (err) {
-              if (err?.message === "OCR_TIMEOUT") {
-                console.warn("OCR no respondió a tiempo (posible bloqueo de red al CDN de tesseract.js) — se sigue solo con el código de barras.");
-              } else {
-                console.error("Error en OCR de etiqueta:", err);
-              }
+              const motivo = err?.message === "OCR_TIMEOUT"
+                ? "El OCR no respondió en 10s (se siguió solo con el código de barras)."
+                : `Error general de OCR: ${err?.message || err}`;
+              if (err?.message === "OCR_TIMEOUT") console.warn(motivo); else console.error(motivo, err);
               // Si el OCR falla o se tarda demasiado, no perdemos el
               // escaneo: cae al flujo normal solo con el código de barras.
               const pend = mod.construirPendienteDesdeEscaneoInteligente({ codigoBarras: codigo, campos: {}, catalogoPT });
-              setCampos({});
+              setCampos({ _diagnostico: { textoCrudo: "(no llegó a leer texto)", numPalabrasDetectadas: 0, tamanoImagen: "—", errores: { general: motivo } } });
               setPendienteLocal(pend);
               setFase("revision");
             }
@@ -1422,6 +1421,33 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
         {campo("CAJAS / TARIMA", "cajasXPalet", "cajasXTarima")}
         {campo("FECHA Y HORA PRODUCCIÓN", "fechaProduccion", "fecha")}
         {campo("CÓDIGO (barcode)", "barcode", null)}
+
+        {campos?._diagnostico && (
+          <details className="bg-[#1B2119] border border-[#2A332C] rounded-lg p-3">
+            <summary className="text-[11px] text-[#8A9389] tracking-wide cursor-pointer">
+              Detalle técnico (para soporte) — toca para ver/ocultar
+            </summary>
+            <div className="mt-2 space-y-1.5 text-[11px] text-[#C9CFC5]">
+              <div>Tamaño de imagen: <span className="mono">{campos._diagnostico.tamanoImagen}</span></div>
+              <div>Palabras detectadas: <span className="mono">{campos._diagnostico.numPalabrasDetectadas}</span></div>
+              {Object.keys(campos._diagnostico.errores || {}).length > 0 && (
+                <div className="text-[#F2C879]">
+                  Errores por campo:
+                  {Object.entries(campos._diagnostico.errores).map(([k, v]) => (
+                    <div key={k} className="mono ml-2">• {k}: {v}</div>
+                  ))}
+                </div>
+              )}
+              <div>
+                Texto crudo leído por el OCR:
+                <pre className="mono whitespace-pre-wrap break-words bg-[#0E140F] rounded p-2 mt-1 text-[10px]">
+                  {campos._diagnostico.textoCrudo}
+                </pre>
+              </div>
+            </div>
+          </details>
+        )}
+
         <div className="grid grid-cols-2 gap-2 pt-1">
           <button onClick={reintentar} className="py-2.5 rounded-lg border border-[#2A332C] text-[#C9CFC5] text-sm font-medium active:scale-[0.98] transition-transform">
             Reintentar
