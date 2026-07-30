@@ -463,7 +463,14 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
 function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
   const [cantidad, setCantidad] = useState("39");
   const [unidad, setUnidad] = useState("tarimas");
-  const skuInfo = catalogoPT[etiqueta.productoId];
+  // El código de barras NUNCA trae el SKU (solo Orden + Robot) — si no vino
+  // de OCR ni de un catálogo de demo, hay que pedirlo a mano aquí mismo,
+  // en vez de dejar "SKU ?" y confundir con el número de Orden.
+  const necesitaSkuManual = !etiqueta.productoId || etiqueta.productoId === "?";
+  const [skuManual, setSkuManual] = useState("");
+  const skuEfectivo = necesitaSkuManual ? skuManual.trim() : etiqueta.productoId;
+
+  const skuInfo = catalogoPT[skuEfectivo];
   const cajasXTarimaCatalogo = skuInfo?.cajasXTarima ?? null;
   const [cajasPorTarimaManual, setCajasPorTarimaManual] = useState(
     etiqueta.cajasXPalet ? String(etiqueta.cajasXPalet) : ""
@@ -471,7 +478,7 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
   const [ubicacion, setUbicacion] = useState(UBICACIONES_DEMO[0]);
   const [ubicacionLibre, setUbicacionLibre] = useState("");
 
-  const nombre = skuInfo?.nombre || `SKU ${etiqueta.productoId}`;
+  const nombre = skuInfo?.nombre || (skuEfectivo ? `SKU ${skuEfectivo}` : "¿Qué SKU es?");
   const cajasXTarimaEfectivo = cajasXTarimaCatalogo ?? (Number(cajasPorTarimaManual) || null);
 
   const totalCajas =
@@ -480,6 +487,7 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
       : null;
 
   const puedeConfirmar =
+    !!skuEfectivo &&
     cantidad && Number(cantidad) > 0 &&
     (unidad === "cajas" || (cajasXTarimaEfectivo && cajasXTarimaEfectivo > 0)) &&
     (ubicacion !== "Otros" || ubicacionLibre.trim());
@@ -492,13 +500,34 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
             <div className="text-[11px] text-[#8A9389] tracking-wide">CONFIRMAR ESCANEO</div>
             <div className="text-base font-bold mt-0.5 text-[#EDEAE2]">{nombre}</div>
             <div className="mono text-[11px] text-[#8A9389] mt-1">
-              Orden {etiqueta.ordenProduccion} · Línea {etiqueta.linea || "—"}
+              Orden {etiqueta.ordenProduccion || "—"} · Línea {etiqueta.linea || "—"}
             </div>
           </div>
           <button onClick={onCancelar} className="text-[#6E776A] hover:text-[#EDEAE2]">
             <X size={20} />
           </button>
         </div>
+
+        {necesitaSkuManual && (
+          <div>
+            <label className="text-[11px] text-[#F2C879] tracking-wide block mb-1.5">
+              SKU — el código de barras no lo trae, escribe el número que ves bajo "PRODUCTO" en la etiqueta
+            </label>
+            <input
+              value={skuManual}
+              onChange={(e) => setSkuManual(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="Ej. 445"
+              style={{ color: "#EDEAE2" }}
+              className="w-full mono bg-[#1B2119] border border-[#F2C879] rounded-lg px-3 py-3 text-lg font-bold focus:outline-none focus:border-[#E2231A]"
+              autoFocus
+            />
+            {skuManual && !skuInfo && (
+              <div className="text-[11px] text-[#F2C879] mt-1.5">Ese SKU no está en la base de datos — puedes seguir, pero verifica que el número sea correcto.</div>
+            )}
+          </div>
+        )}
+
 
         <div className="flex items-start gap-2 bg-[#1B2119] border border-[#2A332C] rounded-lg p-3 text-[11px] text-[#8A9389]">
           <AlertTriangle size={14} className="text-[#F2C879] mt-0.5 shrink-0" />
@@ -577,6 +606,7 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
 
         <button
           onClick={() => onConfirmar({
+            productoId: skuEfectivo,
             cantidad: Number(cantidad) || 1,
             unidad,
             cajasXTarima: unidad === "tarimas" ? cajasXTarimaEfectivo : null,
