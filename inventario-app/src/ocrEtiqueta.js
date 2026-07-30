@@ -253,6 +253,7 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
   // en la app (y mandarme captura) qué está leyendo realmente la cámara,
   // sin necesidad de consola de desarrollador.
   resultado._diagnostico = {
+    version: "ocr-v3-captura-antes-de-reset",
     textoCrudo: dataGeneral.text || "(vacío)",
     numPalabrasDetectadas: palabras.length,
     tamanoImagen: `${anchoImagen}x${altoImagen}`,

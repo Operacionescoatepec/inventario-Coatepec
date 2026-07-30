@@ -1374,7 +1374,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
               // Si el OCR falla o se tarda demasiado, no perdemos el
               // escaneo: cae al flujo normal solo con el código de barras.
               const pend = mod.construirPendienteDesdeEscaneoInteligente({ codigoBarras: codigo, campos: {}, catalogoPT });
-              setCampos({ _diagnostico: { textoCrudo: "(no llegó a leer texto)", numPalabrasDetectadas: 0, tamanoImagen: "—", errores: { general: motivo } } });
+              setCampos({ _diagnostico: { version: "ocr-v3-captura-antes-de-reset", textoCrudo: "(no llegó a leer texto)", numPalabrasDetectadas: 0, tamanoImagen: "—", errores: { general: motivo } } });
               setPendienteLocal(pend);
               setFase("revision");
             }
@@ -1447,6 +1447,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
               Detalle técnico (para soporte) — toca para ver/ocultar
             </summary>
             <div className="mt-2 space-y-1.5 text-[11px] text-[#C9CFC5]">
+              <div className="text-[#9FD3A6]">Versión del código: <span className="mono">{campos._diagnostico.version || "anterior (sin marca)"}</span></div>
               <div>Tamaño de imagen: <span className="mono">{campos._diagnostico.tamanoImagen}</span></div>
               <div>Palabras detectadas: <span className="mono">{campos._diagnostico.numPalabrasDetectadas}</span></div>
               {Object.keys(campos._diagnostico.errores || {}).length > 0 && (
