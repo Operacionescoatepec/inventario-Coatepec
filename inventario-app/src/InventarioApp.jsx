@@ -3,7 +3,7 @@ import {
   Scan, Package, CheckCircle2, AlertTriangle, XCircle, ClipboardList, Upload,
   Trash2, ChevronRight, ChevronLeft, Camera, PenLine, MapPin, Calendar, Boxes,
   Layers, X, GlassWater, Container, ShoppingBag, Box, UserCircle2, LogOut,
-  CloudUpload, Search,
+  CloudUpload, Search, Flashlight,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -1160,6 +1160,11 @@ function EscanerCamara({ onDetectado, flashOk }) {
   const [estado, setEstado] = useState("iniciando"); // iniciando | activo | permiso_denegado | sin_camara | error
   const [errorMsg, setErrorMsg] = useState("");
   const ultimaDeteccionRef = useRef(0);
+  const trackRef = useRef(null);
+  const [zoomCaps, setZoomCaps] = useState(null); // { min, max, step } o null si el dispositivo no lo soporta
+  const [zoom, setZoom] = useState(null);
+  const [torchDisponible, setTorchDisponible] = useState(false);
+  const [torchActivo, setTorchActivo] = useState(false);
 
   useEffect(() => {
     // La planta usa 3 formatos reales: Code 128 (líneas de producción y
@@ -1192,8 +1197,11 @@ function EscanerCamara({ onDetectado, flashOk }) {
               // Pedir explícitamente alta resolución: sin esto el navegador
               // suele entregar 640x480, insuficiente para leer un código de
               // barras real a la distancia normal de escaneo en planta.
-              width: { ideal: 1920 },
-              height: { ideal: 1080 },
+              // Se pide hasta 4K "ideal" — el navegador entrega lo más
+              // cercano que soporte el dispositivo, nunca falla por pedir
+              // de más.
+              width: { ideal: 3840 },
+              height: { ideal: 2160 },
               // "continuous" ayuda en los navegadores que lo soportan a que
               // la cámara no se quede desenfocada en el fondo.
               advanced: [{ focusMode: "continuous" }],
@@ -1213,7 +1221,30 @@ function EscanerCamara({ onDetectado, flashOk }) {
             }
           }
         );
-        if (activo) setEstado("activo");
+        if (activo) {
+          setEstado("activo");
+          // Zoom óptico/digital vía la Media Capture API — soportado en la
+          // mayoría de Android (Chrome), muy limitado o inexistente en
+          // iOS Safari (ahí el control simplemente no aparece). Acercar
+          // así, sin mover el teléfono, ayuda mucho a que el código de
+          // barras llene más el cuadro sin perder el enfoque.
+          try {
+            const stream = videoRef.current?.srcObject;
+            const track = stream?.getVideoTracks?.()[0];
+            if (track) {
+              trackRef.current = track;
+              const caps = track.getCapabilities?.();
+              if (caps?.zoom) {
+                setZoomCaps({ min: caps.zoom.min, max: caps.zoom.max, step: caps.zoom.step || 0.1 });
+                const actual = track.getSettings?.()?.zoom;
+                setZoom(actual ?? caps.zoom.min);
+              }
+              if (caps?.torch) setTorchDisponible(true);
+            }
+          } catch (err) {
+            console.warn("Zoom de cámara no disponible:", err);
+          }
+        }
       } catch (err) {
         if (!activo) return;
         console.error("No se pudo iniciar la cámara:", err);
@@ -1235,6 +1266,25 @@ function EscanerCamara({ onDetectado, flashOk }) {
       try { reader.reset(); } catch {}
     };
   }, [onDetectado]);
+
+  const aplicarZoom = async (valor) => {
+    setZoom(valor);
+    try {
+      await trackRef.current?.applyConstraints({ advanced: [{ zoom: valor }] });
+    } catch (err) {
+      console.warn("No se pudo aplicar el zoom:", err);
+    }
+  };
+
+  const toggleTorch = async () => {
+    const nuevo = !torchActivo;
+    try {
+      await trackRef.current?.applyConstraints({ advanced: [{ torch: nuevo }] });
+      setTorchActivo(nuevo);
+    } catch (err) {
+      console.warn("No se pudo activar la linterna:", err);
+    }
+  };
 
   return (
     <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#070A06] border border-[#2A332C]">
@@ -1289,6 +1339,34 @@ function EscanerCamara({ onDetectado, flashOk }) {
         <Camera size={12} />
         {estado === "activo" ? "CÁMARA ACTIVA" : "CÁMARA"}
       </div>
+
+      {estado === "activo" && (zoomCaps || torchDisponible) && (
+        <div className="absolute top-3 right-3 left-24 flex items-center gap-2">
+          {zoomCaps && (
+            <div className="flex-1 bg-black/50 rounded-lg px-3 py-2 flex items-center gap-2">
+              <span className="text-[10px] mono shrink-0" style={{ color: "#C9CFC5" }}>ZOOM</span>
+              <input
+                type="range"
+                min={zoomCaps.min}
+                max={zoomCaps.max}
+                step={zoomCaps.step}
+                value={zoom ?? zoomCaps.min}
+                onChange={(e) => aplicarZoom(Number(e.target.value))}
+                className="w-full accent-[#E2231A]"
+              />
+            </div>
+          )}
+          {torchDisponible && (
+            <button
+              onClick={toggleTorch}
+              className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: torchActivo ? "#E2231A" : "rgba(0,0,0,0.5)" }}
+            >
+              <Flashlight size={16} color="#FFFFFF" />
+            </button>
+          )}
+        </div>
+      )}
 
       {flashOk && (
         <div className="absolute inset-0 bg-[#9FD3A6] flash-overlay flex items-center justify-center">
