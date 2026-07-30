@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import {
-  BrowserMultiFormatReader, NotFoundException, DecodeHintType, BarcodeFormat,
+  BrowserBarcodeReader, NotFoundException, DecodeHintType, BarcodeFormat,
 } from "@zxing/library";
 // NOTA: "./ocrEtiqueta" (y tesseract.js, que pesa varios cientos de KB) se
 // importa de forma DINÁMICA dentro de EscaneoInteligente, no aquí arriba.
@@ -1089,7 +1089,13 @@ function EscanerCamara({ onDetectado, flashOk }) {
       BarcodeFormat.EAN_13,
     ]);
     hints.set(DecodeHintType.TRY_HARDER, true);
-    const reader = new BrowserMultiFormatReader(hints);
+    // OJO con el orden de argumentos: BrowserBarcodeReader(timeBetweenScans, hints)
+    // — al revés que BrowserMultiFormatReader(hints, timeBetweenScans).
+    // Usamos este lector "solo 1D" a propósito: BrowserMultiFormatReader
+    // IGNORA el filtro POSSIBLE_FORMATS para códigos 2D — sigue detectando
+    // QR/DataMatrix aunque le digamos que no. El lector 1D-only nunca
+    // intenta siquiera decodificar QR, así que no puede confundirse.
+    const reader = new BrowserBarcodeReader(500, hints);
     let activo = true;
 
     async function iniciar() {
@@ -1237,7 +1243,13 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
       BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.ITF, BarcodeFormat.EAN_13,
     ]);
     hints.set(DecodeHintType.TRY_HARDER, true);
-    const reader = new BrowserMultiFormatReader(hints);
+    // OJO con el orden de argumentos: BrowserBarcodeReader(timeBetweenScans, hints)
+    // — al revés que BrowserMultiFormatReader(hints, timeBetweenScans).
+    // Usamos este lector "solo 1D" a propósito: BrowserMultiFormatReader
+    // IGNORA el filtro POSSIBLE_FORMATS para códigos 2D — sigue detectando
+    // QR/DataMatrix aunque le digamos que no. El lector 1D-only nunca
+    // intenta siquiera decodificar QR, así que no puede confundirse.
+    const reader = new BrowserBarcodeReader(500, hints);
     let activo = true;
 
     async function iniciar() {
@@ -1287,8 +1299,18 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
 
             try {
               const frame = mod.capturarFrameDeVideo(videoRef.current);
-              const worker = await mod.obtenerWorkerOCR();
-              const camposDetectados = await mod.leerEtiquetaCompleta(worker, frame);
+              // Límite de 10s: si el motor de OCR no responde (por ejemplo,
+              // porque la red bloquea la descarga de tesseract.js desde su
+              // CDN), no nos quedamos colgados — seguimos solo con el
+              // código de barras en vez de congelar la pantalla.
+              const conLimiteDeTiempo = (promesa, ms) =>
+                Promise.race([
+                  promesa,
+                  new Promise((_, rej) => setTimeout(() => rej(new Error("OCR_TIMEOUT")), ms)),
+                ]);
+
+              const worker = await conLimiteDeTiempo(mod.obtenerWorkerOCR(), 10000);
+              const camposDetectados = await conLimiteDeTiempo(mod.leerEtiquetaCompleta(worker, frame), 10000);
               const pend = mod.construirPendienteDesdeEscaneoInteligente({
                 codigoBarras: codigo, campos: camposDetectados, catalogoPT,
               });
@@ -1296,9 +1318,13 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
               setPendienteLocal(pend);
               setFase("revision");
             } catch (err) {
-              console.error("Error en OCR de etiqueta:", err);
-              // Si el OCR falla, no perdemos el escaneo: cae al flujo normal
-              // solo con lo que da el código de barras.
+              if (err?.message === "OCR_TIMEOUT") {
+                console.warn("OCR no respondió a tiempo (posible bloqueo de red al CDN de tesseract.js) — se sigue solo con el código de barras.");
+              } else {
+                console.error("Error en OCR de etiqueta:", err);
+              }
+              // Si el OCR falla o se tarda demasiado, no perdemos el
+              // escaneo: cae al flujo normal solo con el código de barras.
               const pend = mod.construirPendienteDesdeEscaneoInteligente({ codigoBarras: codigo, campos: {}, catalogoPT });
               setCampos({});
               setPendienteLocal(pend);
