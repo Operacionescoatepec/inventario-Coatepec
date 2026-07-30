@@ -32,7 +32,15 @@ import { createWorker } from "tesseract.js";
 let workerPromise = null;
 export function obtenerWorkerOCR() {
   if (!workerPromise) {
-    workerPromise = createWorker("eng");
+    // cacheMethod: "none" — tesseract.js normalmente guarda el modelo de
+    // idioma en IndexedDB para no re-descargarlo. Hay un bug conocido y
+    // documentado (naptha/tesseract.js#901, #414) donde ese guardado se
+    // queda colgado SIN error en ciertos navegadores (Safari/iOS entre
+    // ellos) — exactamente el síntoma de "se queda en Leyendo etiqueta
+    // para siempre". Desactivar el caché evita el bloqueo. Costo: se
+    // vuelve a descargar el modelo de idioma (~2-4MB) en cada sesión en
+    // vez de una sola vez — aceptable a cambio de que funcione siempre.
+    workerPromise = createWorker("eng", 1, { cacheMethod: "none" });
   }
   return workerPromise;
 }
