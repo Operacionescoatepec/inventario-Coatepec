@@ -488,6 +488,88 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
 // ===========================================================================
 // MODAL — confirmar escaneo de etiqueta de Producto Terminado (modo TPM, con fecha)
 // ===========================================================================
+// ===========================================================================
+// BUSCADOR DE SKU — autocompletado por número o nombre de producto, para
+// evitar el error de dedo de escribir el SKU a mano. Se elige de una lista
+// ya validada contra el catálogo en vez de tipear dígitos sueltos.
+// ===========================================================================
+function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus }) {
+  const [texto, setTexto] = useState(valor || "");
+  const [abierto, setAbierto] = useState(false);
+  const contenedorRef = useRef(null);
+
+  useEffect(() => {
+    function onClickFuera(e) {
+      if (contenedorRef.current && !contenedorRef.current.contains(e.target)) setAbierto(false);
+    }
+    document.addEventListener("mousedown", onClickFuera);
+    document.addEventListener("touchstart", onClickFuera);
+    return () => {
+      document.removeEventListener("mousedown", onClickFuera);
+      document.removeEventListener("touchstart", onClickFuera);
+    };
+  }, []);
+
+  const entradas = useMemo(() => Object.values(catalogoPT || {}), [catalogoPT]);
+  const resultados = useMemo(() => {
+    const q = texto.trim().toLowerCase();
+    if (!q) return [];
+    return entradas
+      .filter((e) => e.sku.toLowerCase().includes(q) || (e.nombre || "").toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [entradas, texto]);
+
+  const seleccionar = (entrada) => {
+    setTexto(entrada.sku);
+    setAbierto(false);
+    onSeleccionar(entrada.sku);
+  };
+
+  const cambiarTexto = (valorNuevo) => {
+    setTexto(valorNuevo);
+    setAbierto(true);
+    onSeleccionar(valorNuevo.trim());
+  };
+
+  return (
+    <div ref={contenedorRef} className="relative">
+      <div className="relative">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+        <input
+          type="text"
+          value={texto}
+          onChange={(e) => cambiarTexto(e.target.value)}
+          onFocus={() => setAbierto(true)}
+          placeholder="SKU o nombre del producto…"
+          autoFocus={autoFocus}
+          style={{ color: "#EDEAE2" }}
+          className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
+        />
+      </div>
+      {abierto && resultados.length > 0 && (
+        <div className="absolute z-30 left-0 right-0 mt-1 bg-[#161D14] border border-[#2A332C] rounded-lg overflow-hidden shadow-lg max-h-64 overflow-y-auto">
+          {resultados.map((r) => (
+            <button
+              key={r.sku}
+              type="button"
+              onClick={() => seleccionar(r)}
+              className="w-full text-left px-3 py-2.5 hover:bg-[#1B2119] active:bg-[#232B20] border-b border-[#2A332C] last:border-b-0"
+            >
+              <div className="mono text-sm font-bold" style={{ color: "#EDEAE2" }}>{r.sku}</div>
+              <div className="text-[11px] truncate" style={{ color: "#8A9389" }}>{r.nombre}</div>
+            </button>
+          ))}
+        </div>
+      )}
+      {abierto && texto.trim() && resultados.length === 0 && (
+        <div className="absolute z-30 left-0 right-0 mt-1 bg-[#161D14] border border-[#2A332C] rounded-lg px-3 py-2.5 text-[11px]" style={{ color: "#F2C879" }}>
+          Sin coincidencias en el catálogo — verifica el número.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
   const [cantidad, setCantidad] = useState("39");
   const [unidad, setUnidad] = useState("tarimas");
@@ -550,17 +632,9 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
         {necesitaSkuManual && (
           <div>
             <label className="text-[11px] text-[#F2C879] tracking-wide block mb-1.5">
-              SKU — el código de barras no lo trae, escribe el número que ves bajo "PRODUCTO" en la etiqueta
+              SKU — el código de barras no lo trae, busca el producto
             </label>
-            <input
-              value={skuManual}
-              onChange={(e) => setSkuManual(e.target.value.replace(/\D/g, ""))}
-              inputMode="numeric"
-              placeholder="Ej. 445"
-              style={{ color: "#EDEAE2" }}
-              className="w-full mono bg-[#1B2119] border border-[#F2C879] rounded-lg px-3 py-3 text-lg font-bold focus:outline-none focus:border-[#E2231A]"
-              autoFocus
-            />
+            <BuscadorSKU catalogoPT={catalogoPT} valor={skuManual} onSeleccionar={setSkuManual} autoFocus />
             {skuManual && !skuInfo && (
               <div className="text-[11px] text-[#F2C879] mt-1.5">Ese SKU no está en la base de datos — puedes seguir, pero verifica que el número sea correcto.</div>
             )}
@@ -729,13 +803,7 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar }) {
 
       <div>
         <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">MATERIAL (SKU)</label>
-        <input
-          type="text" inputMode="numeric" pattern="[0-9]*"
-          value={material}
-          onChange={(e) => setMaterial(e.target.value)}
-          placeholder="Ej. 360"
-          className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
-        />
+        <BuscadorSKU catalogoPT={catalogoPT} valor={material} onSeleccionar={setMaterial} />
         {nombreSugerido && <div className="text-[11px] text-[#9FD3A6] mt-1.5">✓ {nombreSugerido}</div>}
         {material.trim() && !nombreSugerido && <div className="text-[11px] text-[#F2C879] mt-1.5">No está en la base de datos — se guardará para revisión</div>}
       </div>
