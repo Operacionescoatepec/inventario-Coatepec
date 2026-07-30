@@ -477,6 +477,13 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
   );
   const [ubicacion, setUbicacion] = useState(UBICACIONES_DEMO[0]);
   const [ubicacionLibre, setUbicacionLibre] = useState("");
+  // El código de barras tampoco trae la fecha de máxima frescura (solo el
+  // OCR de esa franja del banner la puede leer, y "Con etiqueta" no usa
+  // OCR) — si no vino ya resuelta, se captura aquí mismo, igual que en la
+  // captura sin etiqueta.
+  const necesitaFechaManual = !etiqueta.agrupadorCaducidad;
+  const [fechaManual, setFechaManual] = useState(etiqueta.agrupadorCaducidad || hoyISO());
+  const fechaEfectiva = necesitaFechaManual ? fechaManual : etiqueta.agrupadorCaducidad;
 
   const nombre = skuInfo?.nombre || (skuEfectivo ? `SKU ${skuEfectivo}` : "¿Qué SKU es?");
   const cajasXTarimaEfectivo = cajasXTarimaCatalogo ?? (Number(cajasPorTarimaManual) || null);
@@ -488,6 +495,7 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
 
   const puedeConfirmar =
     !!skuEfectivo &&
+    !!fechaEfectiva &&
     cantidad && Number(cantidad) > 0 &&
     (unidad === "cajas" || (cajasXTarimaEfectivo && cajasXTarimaEfectivo > 0)) &&
     (ubicacion !== "Otros" || ubicacionLibre.trim());
@@ -529,10 +537,28 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
         )}
 
 
-        <div className="flex items-start gap-2 bg-[#1B2119] border border-[#2A332C] rounded-lg p-3 text-[11px] text-[#8A9389]">
-          <AlertTriangle size={14} className="text-[#F2C879] mt-0.5 shrink-0" />
-          Esta fecha de caducidad ({formatFecha(etiqueta.agrupadorCaducidad)}) aplica a todo el bloque que estás registrando.
-        </div>
+        {necesitaFechaManual ? (
+          <div>
+            <label className="text-[11px] text-[#F2C879] tracking-wide block mb-1.5">
+              FECHA DE MÁXIMA FRESCURA — la del banner negro en la etiqueta
+            </label>
+            <div className="relative">
+              <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+              <input
+                type="date"
+                value={fechaManual}
+                onChange={(e) => setFechaManual(e.target.value)}
+                style={{ color: "#EDEAE2" }}
+                className="w-full mono bg-[#1B2119] border border-[#F2C879] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-start gap-2 bg-[#1B2119] border border-[#2A332C] rounded-lg p-3 text-[11px] text-[#8A9389]">
+            <AlertTriangle size={14} className="text-[#F2C879] mt-0.5 shrink-0" />
+            Esta fecha de caducidad ({formatFecha(etiqueta.agrupadorCaducidad)}) aplica a todo el bloque que estás registrando.
+          </div>
+        )}
 
         <div>
           <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">CANTIDAD</label>
@@ -607,6 +633,7 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
         <button
           onClick={() => onConfirmar({
             productoId: skuEfectivo,
+            agrupadorCaducidad: fechaEfectiva,
             cantidad: Number(cantidad) || 1,
             unidad,
             cajasXTarima: unidad === "tarimas" ? cajasXTarimaEfectivo : null,
