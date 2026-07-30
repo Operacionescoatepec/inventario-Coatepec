@@ -1302,6 +1302,25 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
 
             const codigo = result.getText();
             setFase("leyendo");
+
+            // CRÍTICO: capturamos el frame AQUÍ, antes de reader.reset().
+            // reset() detiene el stream de la cámara — si capturábamos
+            // después (como antes), el video ya estaba en 0x0 y no había
+            // nada que leer. Por eso siempre daba "videoWidth/Height = 0".
+            let frame = null;
+            try {
+              const v = videoRef.current;
+              const c = document.createElement("canvas");
+              c.width = v.videoWidth;
+              c.height = v.videoHeight;
+              if (c.width > 0 && c.height > 0) {
+                c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+                frame = c;
+              }
+            } catch (err) {
+              console.error("No se pudo capturar el frame antes de detener la cámara:", err);
+            }
+
             reader.reset();
 
             let mod = null;
@@ -1328,7 +1347,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
             }
 
             try {
-              const frame = mod.capturarFrameDeVideo(videoRef.current);
+              if (!frame) throw new Error("No se pudo capturar la imagen de la cámara a tiempo.");
               // Límite de 10s: si el motor de OCR no responde (por ejemplo,
               // porque la red bloquea la descarga de tesseract.js desde su
               // CDN), no nos quedamos colgados — seguimos solo con el
