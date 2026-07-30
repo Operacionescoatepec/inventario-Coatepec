@@ -180,8 +180,21 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
   const resultado = {};
   const erroresPorCampo = {};
 
-  // --- SKU: dos estrategias, la que encuentre dígitos primero gana ---
+  // --- SKU: tres estrategias, la que encuentre dígitos primero gana ---
   try {
+    // Estrategia C (nueva): ancla "SKU" explícita, valor a la derecha en
+    // la misma línea (diseño con QR: "SKU | 100575")
+    const wSku = buscarPalabra(palabras, "SKU");
+    if (wSku) {
+      const r = await leerValorALaDerechaDe(worker, canvasOriginal, wSku.bbox, anchoImagen, {
+        whitelist: "0123456789", anchoMultiplicador: 8,
+      });
+      const digitos = r.texto.replace(/\D/g, "");
+      if (digitos && digitos.length <= 10) resultado.sku = { valor: digitos, confianza: r.confianza, fuente: "ocr" };
+    }
+  } catch (err) { erroresPorCampo.sku = String(err?.message || err); }
+
+  if (!resultado.sku) try {
     const wProducto = buscarPalabra(palabras, "PRODUCTO");
     if (wProducto) {
       const alto = wProducto.bbox.y1 - wProducto.bbox.y0;
@@ -357,7 +370,7 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
   // en la app (y mandarme captura) qué está leyendo realmente la cámara,
   // sin necesidad de consola de desarrollador.
   resultado._diagnostico = {
-    version: "ocr-v5-multi-layout-pase1-directo",
+    version: "ocr-v6-qr-y-sku-explicito",
     textoCrudo: dataGeneral.text || "(vacío)",
     numPalabrasDetectadas: palabras.length,
     tamanoImagen: `${anchoImagen}x${altoImagen}`,

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import {
-  BrowserBarcodeReader, NotFoundException, DecodeHintType, BarcodeFormat,
+  BrowserMultiFormatReader, NotFoundException, DecodeHintType, BarcodeFormat,
 } from "@zxing/library";
 // NOTA: "./ocrEtiqueta" (y tesseract.js, que pesa varios cientos de KB) se
 // importa de forma DINÁMICA dentro de EscaneoInteligente, no aquí arriba.
@@ -1104,28 +1104,25 @@ function EscanerCamara({ onDetectado, flashOk }) {
   const ultimaDeteccionRef = useRef(0);
 
   useEffect(() => {
-    // Los códigos de las etiquetas de planta son Code 128 / ITF / Code 39
-    // (nunca QR ni EAN de producto). Decirle esto a zxing explícitamente,
-    // en vez de dejarlo probar TODOS los formatos, mejora mucho la velocidad
-    // y la tasa de acierto. TRY_HARDER activa el modo de decodificación más
-    // agresivo, necesario para etiquetas reales (borrosas, en ángulo, con
-    // poco contraste) — sin esto, zxing solo suele leer códigos "de libro
-    // de texto": grandes, planos y perfectamente iluminados.
+    // La planta usa 3 formatos reales: Code 128 (líneas de producción y
+    // etiquetas manuales) y QR (productos que llegan de otras plantas).
+    // OJO: BrowserMultiFormatReader IGNORA el filtro POSSIBLE_FORMATS para
+    // códigos 2D — decodifica QR aunque no esté en la lista (confirmado
+    // con pruebas) — así que de cualquier forma hay que asumir que puede
+    // leer QR. Por eso lo incluimos explícitamente aquí, a propósito, en
+    // vez de pelear contra ese comportamiento. TRY_HARDER activa el modo
+    // de decodificación más agresivo, necesario para etiquetas reales
+    // (borrosas, en ángulo, con poco contraste, o con brillo del plástico).
     const hints = new Map();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
       BarcodeFormat.CODE_128,
       BarcodeFormat.CODE_39,
       BarcodeFormat.ITF,
       BarcodeFormat.EAN_13,
+      BarcodeFormat.QR_CODE,
     ]);
     hints.set(DecodeHintType.TRY_HARDER, true);
-    // OJO con el orden de argumentos: BrowserBarcodeReader(timeBetweenScans, hints)
-    // — al revés que BrowserMultiFormatReader(hints, timeBetweenScans).
-    // Usamos este lector "solo 1D" a propósito: BrowserMultiFormatReader
-    // IGNORA el filtro POSSIBLE_FORMATS para códigos 2D — sigue detectando
-    // QR/DataMatrix aunque le digamos que no. El lector 1D-only nunca
-    // intenta siquiera decodificar QR, así que no puede confundirse.
-    const reader = new BrowserBarcodeReader(500, hints);
+    const reader = new BrowserMultiFormatReader(hints);
     let activo = true;
 
     async function iniciar() {
@@ -1271,15 +1268,10 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
     const hints = new Map();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
       BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.ITF, BarcodeFormat.EAN_13,
+      BarcodeFormat.QR_CODE,
     ]);
     hints.set(DecodeHintType.TRY_HARDER, true);
-    // OJO con el orden de argumentos: BrowserBarcodeReader(timeBetweenScans, hints)
-    // — al revés que BrowserMultiFormatReader(hints, timeBetweenScans).
-    // Usamos este lector "solo 1D" a propósito: BrowserMultiFormatReader
-    // IGNORA el filtro POSSIBLE_FORMATS para códigos 2D — sigue detectando
-    // QR/DataMatrix aunque le digamos que no. El lector 1D-only nunca
-    // intenta siquiera decodificar QR, así que no puede confundirse.
-    const reader = new BrowserBarcodeReader(500, hints);
+    const reader = new BrowserMultiFormatReader(hints);
     let activo = true;
 
     async function iniciar() {
@@ -1374,7 +1366,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
               // Si el OCR falla o se tarda demasiado, no perdemos el
               // escaneo: cae al flujo normal solo con el código de barras.
               const pend = mod.construirPendienteDesdeEscaneoInteligente({ codigoBarras: codigo, campos: {}, catalogoPT });
-              setCampos({ _diagnostico: { version: "ocr-v5-multi-layout-pase1-directo", textoCrudo: "(no llegó a leer texto)", numPalabrasDetectadas: 0, tamanoImagen: "—", errores: { general: motivo } } });
+              setCampos({ _diagnostico: { version: "ocr-v6-qr-y-sku-explicito", textoCrudo: "(no llegó a leer texto)", numPalabrasDetectadas: 0, tamanoImagen: "—", errores: { general: motivo } } });
               setPendienteLocal(pend);
               setFase("revision");
             }
