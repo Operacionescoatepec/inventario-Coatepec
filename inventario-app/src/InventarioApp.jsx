@@ -1374,7 +1374,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
               // Si el OCR falla o se tarda demasiado, no perdemos el
               // escaneo: cae al flujo normal solo con el código de barras.
               const pend = mod.construirPendienteDesdeEscaneoInteligente({ codigoBarras: codigo, campos: {}, catalogoPT });
-              setCampos({ _diagnostico: { version: "ocr-v3-captura-antes-de-reset", textoCrudo: "(no llegó a leer texto)", numPalabrasDetectadas: 0, tamanoImagen: "—", errores: { general: motivo } } });
+              setCampos({ _diagnostico: { version: "ocr-v5-multi-layout-pase1-directo", textoCrudo: "(no llegó a leer texto)", numPalabrasDetectadas: 0, tamanoImagen: "—", errores: { general: motivo } } });
               setPendienteLocal(pend);
               setFase("revision");
             }
@@ -1437,6 +1437,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
         {campo("LÍNEA", "linea", "linea")}
         {campo("ORDEN DE PRODUCCIÓN", "ordenProduccion", null)}
         {campo("ROBOT", "codigoRobot", null)}
+        {campo("NÚMERO DE TARIMA", "numeroTarima", "numeroTarima")}
         {campo("CAJAS / TARIMA", "cajasXPalet", "cajasXTarima")}
         {campo("FECHA Y HORA PRODUCCIÓN", "fechaProduccion", "fecha")}
         {campo("CÓDIGO (barcode)", "barcode", null)}

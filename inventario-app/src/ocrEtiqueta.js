@@ -105,12 +105,27 @@ async function releerRegion(worker, canvasOriginal, region, { whitelist = "", ps
 
 // ---------------------------------------------------------------------------
 // Deriva Orden de Producción (8 dígitos) + Código de Robot (4 dígitos) del
-// código de barras — esto YA es 100% confiable (no necesita OCR).
+// código de barras — esto YA es 100% confiable (no necesita OCR). Aplica
+// solo al formato de 12 dígitos (etiquetas tipo "agrupador").
 // ---------------------------------------------------------------------------
 export function derivarDeCodigoBarras(codigoRaw) {
   const limpio = (codigoRaw || "").replace(/\D/g, "");
   if (limpio.length !== 12) return null;
   return { ordenProduccion: limpio.slice(0, 8), codigoRobot: limpio.slice(8, 12) };
+}
+
+// ---------------------------------------------------------------------------
+// Etiquetas tipo "tarima" (20 dígitos) parecen codificar SKU y Número de
+// Tarima en posiciones fijas — confirmado contra UNA sola etiqueta de
+// muestra (SPRITE 600ML, SKU 000353, tarima 9005 → posiciones 6-11 y 16-19).
+// Se usa solo como RESPALDO/cruce si el OCR no logra leer esos campos —
+// si con más etiquetas reales las posiciones no cuadran, avisa para
+// recalibrar esto en vez de confiar ciegamente en él.
+// ---------------------------------------------------------------------------
+export function derivarDe20Digitos(codigoRaw) {
+  const limpio = (codigoRaw || "").replace(/\D/g, "");
+  if (limpio.length !== 20) return null;
+  return { skuDelBarcode: limpio.slice(6, 12), numeroTarimaDelBarcode: limpio.slice(16, 20) };
 }
 
 // ---------------------------------------------------------------------------
@@ -128,14 +143,34 @@ export function capturarFrameDeVideo(videoEl) {
   return c;
 }
 
+// Patrón repetido en varias etiquetas: "ETIQUETA: valor" en la misma línea
+// (CENTRO: MDBI / LINEA: LINEA002 / NO. DE TARIMA: 9005). Recorta la región
+// a la derecha del ancla y la relee con un alfabeto restringido.
+async function leerValorALaDerechaDe(worker, canvasOriginal, anclaBbox, anchoImagen, opciones) {
+  const alto = anclaBbox.y1 - anclaBbox.y0;
+  const r = await releerRegion(worker, canvasOriginal, {
+    x0: anclaBbox.x1,
+    x1: Math.min(anchoImagen, anclaBbox.x1 + alto * (opciones.anchoMultiplicador ?? 8)),
+    y0: anclaBbox.y0 - alto * 0.3,
+    y1: anclaBbox.y1 + alto * 0.3,
+  }, { whitelist: opciones.whitelist });
+  return r;
+}
+
 // ---------------------------------------------------------------------------
 // Extracción completa: 1 pasada general + recortes dirigidos por campo.
 // Devuelve { campo: { valor, confianza (0-100), fuente: "ocr" } }
 //
-// NOTA para cuando se pruebe con más fotos reales: los multiplicadores de
-// recorte (alto*2.4, alto*7, etc.) se calibraron contra una etiqueta de
-// muestra. Si con otras fotos/ángulos algún campo sale corto o con ruido de
-// la columna vecina, ajusta esos multiplicadores — no la lógica en sí.
+// Diseñado para reconocer AL MENOS 2 layouts de etiqueta distintos que ya
+// vimos en planta:
+//   A) "agrupador": SKU como número grande y aislado bajo "PRODUCTO",
+//      fecha+hora en la misma línea, "CENTRO" suelto sin etiqueta.
+//   B) "tarima": SKU chico en la línea justo debajo de "Producto:",
+//      fecha y hora en líneas separadas, "CENTRO:"/"LINEA:"/"NO. DE
+//      TARIMA:" todos con etiqueta explícita seguida del valor.
+// Cada campo intenta varias estrategias y se queda con la primera que
+// encuentre algo — si aparece un tercer layout, lo más probable es que
+// necesite agregar una estrategia más aquí, no reescribir todo.
 // ---------------------------------------------------------------------------
 export async function leerEtiquetaCompleta(worker, canvasOriginal) {
   const { data: dataGeneral } = await worker.recognize(canvasOriginal, {}, { blocks: true });
@@ -145,60 +180,88 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
   const resultado = {};
   const erroresPorCampo = {};
 
-  // Cada campo se extrae en su propio try/catch: si uno falla (p. ej. un
-  // recorte con coordenadas inválidas por un encuadre distinto al de
-  // prueba), NO debe tirar a la basura los campos que sí se leyeron bien.
-  // Antes, un solo error aquí abortaba toda la función y regresaba todo
-  // vacío — este era probablemente el motivo real de "datos vacíos".
-
-  // --- SKU: número grande justo debajo de la palabra "PRODUCTO" ---
+  // --- SKU: dos estrategias, la que encuentre dígitos primero gana ---
   try {
     const wProducto = buscarPalabra(palabras, "PRODUCTO");
     if (wProducto) {
       const alto = wProducto.bbox.y1 - wProducto.bbox.y0;
-      const r = await releerRegion(worker, canvasOriginal, {
-        x0: wProducto.bbox.x0 - alto,
-        x1: wProducto.bbox.x1 + alto,
-        y0: wProducto.bbox.y1,
-        y1: wProducto.bbox.y1 + alto * 2.4,
+      // Estrategia A: número GRANDE debajo (diseño "agrupador")
+      const rA = await releerRegion(worker, canvasOriginal, {
+        x0: wProducto.bbox.x0 - alto, x1: wProducto.bbox.x1 + alto,
+        y0: wProducto.bbox.y1, y1: wProducto.bbox.y1 + alto * 2.4,
       }, { whitelist: "0123456789" });
-      const digitos = r.texto.replace(/\D/g, "");
-      if (digitos) resultado.sku = { valor: digitos, confianza: r.confianza, fuente: "ocr" };
+      let digitos = rA.texto.replace(/\D/g, "");
+      let confianza = rA.confianza;
+      // Estrategia B: línea chica pegada justo debajo (diseño "tarima") —
+      // si A no dio nada útil (vacío o demasiados dígitos = agarró basura)
+      if (!digitos || digitos.length > 10) {
+        const rB = await releerRegion(worker, canvasOriginal, {
+          x0: wProducto.bbox.x0 - alto, x1: wProducto.bbox.x1 + alto * 4,
+          y0: wProducto.bbox.y1, y1: wProducto.bbox.y1 + alto * 1.3,
+        }, { whitelist: "0123456789" });
+        const digitosB = rB.texto.replace(/\D/g, "");
+        if (digitosB) { digitos = digitosB; confianza = rB.confianza; }
+      }
+      if (digitos && digitos.length <= 10) resultado.sku = { valor: digitos, confianza, fuente: "ocr" };
     }
   } catch (err) { erroresPorCampo.sku = String(err?.message || err); }
 
-  // --- Centro: token corto en mayúsculas en la esquina superior de la etiqueta ---
+  // --- Centro: 1) "CENTRO: valor" explícito, 2) token suelto arriba ---
   try {
-    const candidatoCentro = palabras.find(
-      (p) => p.bbox.y1 < altoImagen * 0.12 && /^[A-Z]{3,6}$/.test(normaliza(p.texto))
-    );
-    if (candidatoCentro) {
-      resultado.centro = { valor: normaliza(candidatoCentro.texto), confianza: candidatoCentro.confianza, fuente: "ocr" };
+    const wCentro = buscarPalabra(palabras, "CENTRO");
+    if (wCentro) {
+      const r = await leerValorALaDerechaDe(worker, canvasOriginal, wCentro.bbox, anchoImagen, {
+        whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:", anchoMultiplicador: 6,
+      });
+      const valor = normaliza(r.texto);
+      if (valor) resultado.centro = { valor, confianza: r.confianza, fuente: "ocr" };
+    } else {
+      const candidato = palabras.find(
+        (p) => p.bbox.y1 < altoImagen * 0.12 && /^[A-Z]{3,6}$/.test(normaliza(p.texto))
+      );
+      if (candidato) resultado.centro = { valor: normaliza(candidato.texto), confianza: candidato.confianza, fuente: "ocr" };
     }
   } catch (err) { erroresPorCampo.centro = String(err?.message || err); }
 
-  // --- Línea de producción ---
+  // --- Línea de producción: "LINEA : LINEA004" o "LINEA: LINEA002" ---
+  // Usamos whitelist SOLO de dígitos para el valor (no letras): el OCR
+  // confunde fácilmente 'O'/'D' con '0' en fuentes de etiqueta — es más
+  // confiable leer nada más los dígitos y anteponer "LINEA" nosotros
+  // mismos, ya que sabemos que el ancla encontrada literalmente dice eso.
   try {
     const wLinea = buscarPalabra(palabras, "LINEA");
     if (wLinea) {
-      const alto = wLinea.bbox.y1 - wLinea.bbox.y0;
-      const r = await releerRegion(worker, canvasOriginal, {
-        x0: wLinea.bbox.x1,
-        x1: wLinea.bbox.x1 + alto * 7,
-        y0: wLinea.bbox.y0 - alto * 0.3,
-        y1: wLinea.bbox.y1 + alto * 0.3,
-      }, { whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:" });
-      const m = r.texto.match(/([A-Z]+)[:\s]*([0-9O]{2,4})/i);
-      if (m) {
-        resultado.linea = {
-          valor: `${m[1].toUpperCase()}${m[2].toUpperCase().replace(/O/g, "0")}`,
-          confianza: r.confianza, fuente: "ocr",
-        };
+      const r = await leerValorALaDerechaDe(worker, canvasOriginal, wLinea.bbox, anchoImagen, {
+        whitelist: "0123456789", anchoMultiplicador: 7,
+      });
+      const digitos = r.texto.replace(/\D/g, "");
+      if (digitos) {
+        resultado.linea = { valor: `LINEA${digitos.padStart(3, "0")}`, confianza: r.confianza, fuente: "ocr" };
       }
     }
   } catch (err) { erroresPorCampo.linea = String(err?.message || err); }
 
-  // --- Cajas por tarima: número inmediatamente antes de la palabra "CAJAS" ---
+  // --- Número de tarima física: "NO. DE TARIMA: 9005" (campo nuevo, solo
+  //     existe en el diseño "tarima" — NO confundir con "CAJAS X TARIMA") ---
+  try {
+    const wTarima = palabras.find((p, i) => {
+      if (!normaliza(p.texto).includes("TARIMA")) return false;
+      // debe tener "DE" cerca a la izquierda en la misma línea, y NO debe
+      // tener "CAJAS" cerca (para no agarrar "CAJAS X TARIMA")
+      const cercanas = palabras.filter((q) => Math.abs(q.bbox.y0 - p.bbox.y0) < 10);
+      const textoLinea = cercanas.map((q) => normaliza(q.texto)).join(" ");
+      return textoLinea.includes("DE") && !textoLinea.includes("CAJAS");
+    });
+    if (wTarima) {
+      const r = await leerValorALaDerechaDe(worker, canvasOriginal, wTarima.bbox, anchoImagen, {
+        whitelist: "0123456789", anchoMultiplicador: 5,
+      });
+      const digitos = r.texto.replace(/\D/g, "");
+      if (digitos) resultado.numeroTarima = { valor: digitos, confianza: r.confianza, fuente: "ocr" };
+    }
+  } catch (err) { erroresPorCampo.numeroTarima = String(err?.message || err); }
+
+  // --- Cajas por tarima: número inmediatamente antes de "CAJAS" ---
   try {
     const wCajas = buscarPalabra(palabras, "CAJAS");
     if (wCajas) {
@@ -213,7 +276,7 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
     }
   } catch (err) { erroresPorCampo.cajasXTarima = String(err?.message || err); }
 
-  // --- Orden de producción (referencia cruzada — el barcode manda) ---
+  // --- Orden de producción (referencia cruzada — el barcode manda si aplica) ---
   try {
     const wOrden = buscarPalabra(palabras, "ORDEN");
     if (wOrden) {
@@ -228,32 +291,73 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
   } catch (err) { erroresPorCampo.ordenOCR = String(err?.message || err); }
 
   // --- Fecha y hora de producción ---
+  // Primero: si la 1a pasada ya encontró un token LIMPIO con el patrón
+  // exacto (ej. "02:57:37" o "08/08/2026" como una sola palabra), usarlo
+  // directo — recortar y volver a leer a veces empeora un texto que ya
+  // salió bien, porque el reescalado introduce ruido en fuentes chicas.
   try {
-    const wFecha = buscarPalabra(palabras, "FECHA");
+    const horaDirecta = palabras.find((p) => /^\d{1,2}:\d{2}(:\d{2})?$/.test(p.texto.trim()));
+    if (horaDirecta) resultado.hora = { valor: horaDirecta.texto.trim(), confianza: horaDirecta.confianza, fuente: "ocr" };
+  } catch (err) { erroresPorCampo.hora = String(err?.message || err); }
+  try {
+    const fechaDirecta = palabras.find((p) => /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(p.texto.trim()));
+    if (fechaDirecta) resultado.fecha = { valor: fechaDirecta.texto.trim(), confianza: fechaDirecta.confianza, fuente: "ocr" };
+  } catch (err) { erroresPorCampo.fecha = String(err?.message || err); }
+
+  // Respaldo (solo si no se encontraron ya arriba): recorte dirigido a
+  // partir del ancla "FECHA" — o de "PRODUCCION" si la "F" se leyó mal,
+  // que a veces trae fecha y hora juntas en una sola línea.
+  if (!resultado.fecha || !resultado.hora) {
+  try {
+    let wFecha = buscarPalabra(palabras, "FECHA");
+    if (!wFecha) {
+      const candidatos = palabras.filter((p) => normaliza(p.texto).includes("PRODUCCION"));
+      wFecha = candidatos.find((p) => {
+        const mismaLinea = palabras.filter((q) => Math.abs(q.bbox.y0 - p.bbox.y0) < 10);
+        return !mismaLinea.some((q) => normaliza(q.texto).includes("ORDEN"));
+      });
+    }
     if (wFecha) {
       const wDe = palabras.find(
         (p) => normaliza(p.texto) === "DE" && p.bbox.y0 >= wFecha.bbox.y0 - 5 && p.bbox.y0 <= wFecha.bbox.y1 + 5
       ) || wFecha;
       const alto = wFecha.bbox.y1 - wFecha.bbox.y0;
       const r = await releerRegion(worker, canvasOriginal, {
-        x0: wDe.bbox.x1 + alto * 4,
-        x1: anchoImagen,
-        y0: wFecha.bbox.y0 - alto * 0.3,
-        y1: wFecha.bbox.y1 + alto * 0.3,
+        x0: wDe.bbox.x1 + alto * 4, x1: anchoImagen,
+        y0: wFecha.bbox.y0 - alto * 0.3, y1: wFecha.bbox.y1 + alto * 0.3,
       }, { whitelist: "0123456789/:" });
-      const m = r.texto.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})\D*(\d{1,2}:\d{2}(:\d{2})?)/);
-      if (m) {
-        resultado.fecha = { valor: m[1], confianza: r.confianza, fuente: "ocr" };
-        resultado.hora = { valor: m[2], confianza: r.confianza, fuente: "ocr" };
+      if (!resultado.fecha) {
+        const mFecha = r.texto.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/);
+        if (mFecha) resultado.fecha = { valor: mFecha[0], confianza: r.confianza, fuente: "ocr" };
+      }
+      if (!resultado.hora) {
+        const mHora = r.texto.match(/\d{1,2}:\d{2}(:\d{2})?/);
+        if (mHora) resultado.hora = { valor: mHora[0], confianza: r.confianza, fuente: "ocr" };
       }
     }
   } catch (err) { erroresPorCampo.fecha = String(err?.message || err); }
+  }
+
+  // Último respaldo para hora sola: ancla "HORA" dedicada (diseños con
+  // fecha y hora en líneas separadas)
+  if (!resultado.hora) {
+    try {
+      const wHora = buscarPalabra(palabras, "HORA");
+      if (wHora) {
+        const r = await leerValorALaDerechaDe(worker, canvasOriginal, wHora.bbox, anchoImagen, {
+          whitelist: "0123456789:", anchoMultiplicador: 12,
+        });
+        const m = r.texto.match(/\d{1,2}:\d{2}(:\d{2})?/);
+        if (m) resultado.hora = { valor: m[0], confianza: r.confianza, fuente: "ocr" };
+      }
+    } catch (err) { erroresPorCampo.hora = String(err?.message || err); }
+  }
 
   // Info de diagnóstico — no se usa para llenar campos, solo para poder ver
   // en la app (y mandarme captura) qué está leyendo realmente la cámara,
   // sin necesidad de consola de desarrollador.
   resultado._diagnostico = {
-    version: "ocr-v3-captura-antes-de-reset",
+    version: "ocr-v5-multi-layout-pase1-directo",
     textoCrudo: dataGeneral.text || "(vacío)",
     numPalabrasDetectadas: palabras.length,
     tamanoImagen: `${anchoImagen}x${altoImagen}`,
@@ -271,8 +375,9 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
 // cuando ya la tenemos de la base de datos.
 // ---------------------------------------------------------------------------
 export function construirPendienteDesdeEscaneoInteligente({ codigoBarras, campos, catalogoPT }) {
-  const delBarcode = derivarDeCodigoBarras(codigoBarras);
-  const sku = campos.sku?.valor || null;
+  const del12 = derivarDeCodigoBarras(codigoBarras);
+  const del20 = derivarDe20Digitos(codigoBarras);
+  const sku = campos.sku?.valor || del20?.skuDelBarcode || null;
   const infoCatalogo = sku ? catalogoPT?.[sku] : null;
 
   let fechaProduccionISO = null;
@@ -292,8 +397,9 @@ export function construirPendienteDesdeEscaneoInteligente({ codigoBarras, campos
 
   return {
     barcode: (codigoBarras || "").replace(/\D/g, ""),
-    ordenProduccion: delBarcode?.ordenProduccion || campos.ordenOCR?.valor || null,
-    codigoRobot: delBarcode?.codigoRobot || null,
+    ordenProduccion: del12?.ordenProduccion || campos.ordenOCR?.valor || null,
+    codigoRobot: del12?.codigoRobot || null,
+    numeroTarima: campos.numeroTarima?.valor || del20?.numeroTarimaDelBarcode || null,
     productoId: sku || "?",
     linea: campos.linea?.valor || "DESCONOCIDA",
     centro: campos.centro?.valor || null,
@@ -309,6 +415,7 @@ export function construirPendienteDesdeEscaneoInteligente({ codigoBarras, campos
       fecha: campos.fecha?.confianza ?? 0,
       cajasXTarima: campos.cajasXTarima?.confianza ?? 0,
       centro: campos.centro?.confianza ?? 0,
+      numeroTarima: campos.numeroTarima?.confianza ?? 0,
     },
   };
 }
