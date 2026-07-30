@@ -103,6 +103,48 @@ async function releerRegion(worker, canvasOriginal, region, { whitelist = "", ps
   return { texto: (data.text || "").trim(), confianza: data.confidence ?? 0 };
 }
 
+const MESES_ABREV = {
+  ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6,
+  JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12,
+};
+
+// Localiza la banda horizontal más OSCURA dentro del 30% superior de la
+// imagen (el banner de caducidad siempre está ahí) y la relee con PSM 11
+// (texto disperso) — necesario cuando la 1a pasada normal de Tesseract
+// directamente IGNORA esa zona (pasa con fuentes grandes/estilizadas en
+// fondo negro, confirmado con etiqueta real: el banner "20 DIC 24" no
+// aparecía ni una vez en el texto de la pasada general).
+async function extraerBannerOscuro(worker, canvasOriginal) {
+  const alto = canvasOriginal.height;
+  const ancho = canvasOriginal.width;
+  const zonaAlto = Math.round(alto * 0.3);
+  const ctx = canvasOriginal.getContext("2d");
+  const datos = ctx.getImageData(0, 0, ancho, zonaAlto).data;
+  const brillos = [];
+  for (let fila = 0; fila < zonaAlto; fila++) {
+    let suma = 0;
+    const base = fila * ancho * 4;
+    for (let px = 0; px < ancho; px++) {
+      const i = base + px * 4;
+      suma += (datos[i] + datos[i + 1] + datos[i + 2]) / 3;
+    }
+    brillos.push(suma / ancho);
+  }
+  const ventana = Math.max(20, Math.round(zonaAlto * 0.08));
+  let mejorInicio = 0, mejorPromedio = Infinity;
+  for (let i = 0; i <= brillos.length - ventana; i++) {
+    let suma = 0;
+    for (let j = i; j < i + ventana; j++) suma += brillos[j];
+    const promedio = suma / ventana;
+    if (promedio < mejorPromedio) { mejorPromedio = promedio; mejorInicio = i; }
+  }
+  if (mejorPromedio > 120) return null; // no hay banda realmente oscura — no aplica
+  let y0 = mejorInicio, y1 = mejorInicio + ventana;
+  while (y0 > 0 && brillos[y0 - 1] < 130) y0--;
+  while (y1 < brillos.length - 1 && brillos[y1 + 1] < 130) y1++;
+  return releerRegion(worker, canvasOriginal, { x0: 0, x1: ancho, y0, y1: y1 + 5 }, { whitelist: "", psm: "11" });
+}
+
 // ---------------------------------------------------------------------------
 // Deriva Orden de Producción (8 dígitos) + Código de Robot (4 dígitos) del
 // código de barras — esto YA es 100% confiable (no necesita OCR). Aplica
@@ -366,11 +408,74 @@ export async function leerEtiquetaCompleta(worker, canvasOriginal) {
     } catch (err) { erroresPorCampo.hora = String(err?.message || err); }
   }
 
+  // --- Fecha de máxima frescura / caducidad IMPRESA en el banner negro
+  //     (ej. "20 DIC 24", "26 SEP 2026", "22 AGO 2026") — se busca un mes
+  //     abreviado y luego un día y un año EN LA MISMA ALTURA (usando el
+  //     centro vertical, no y0, y con tolerancia proporcional al tamaño
+  //     de fuente del banner — suele ser texto grande y con jitter de
+  //     bounding box más alto que el texto normal). Se prefiere un año de
+  //     4 dígitos si existe, para no confundirlo con el día. Esta es la
+  //     fuente de verdad preferida: mucho más confiable que calcular
+  //     caducidad = fecha_producción + días_vida del catálogo. ---
+  try {
+    const centroY = (p) => (p.bbox.y0 + p.bbox.y1) / 2;
+    const candidatosMes = palabras.filter((p) => MESES_ABREV[normaliza(p.texto).slice(0, 3)]);
+    for (const pMes of candidatosMes) {
+      const alturaMes = pMes.bbox.y1 - pMes.bbox.y0;
+      const tolerancia = Math.max(20, alturaMes * 0.8);
+      const cercanas = palabras.filter((p) => p !== pMes && Math.abs(centroY(p) - centroY(pMes)) < tolerancia);
+      const pDia = cercanas.find((p) => {
+        const d = p.texto.replace(/\D/g, "");
+        return d && d.length <= 2 && Number(d) >= 1 && Number(d) <= 31;
+      });
+      const pAnio =
+        cercanas.find((p) => {
+          const a = p.texto.replace(/\D/g, "");
+          return p !== pDia && /^\d{4}$/.test(a) && Number(a) >= 2020 && Number(a) <= 2035;
+        }) ||
+        cercanas.find((p) => p !== pDia && /^\d{2}$/.test(p.texto.replace(/\D/g, "")));
+      if (pDia && pAnio) {
+        const dia = pDia.texto.replace(/\D/g, "");
+        const anioTxt = pAnio.texto.replace(/\D/g, "");
+        const anioCompleto = anioTxt.length === 2 ? `20${anioTxt}` : anioTxt;
+        const mes = String(MESES_ABREV[normaliza(pMes.texto).slice(0, 3)]).padStart(2, "0");
+        resultado.caducidadImpresa = {
+          valor: `${anioCompleto}-${mes}-${dia.padStart(2, "0")}`,
+          confianza: Math.min(pDia.confianza, pMes.confianza, pAnio.confianza),
+          fuente: "ocr",
+        };
+        break; // primera coincidencia = la más arriba en la etiqueta = el banner
+      }
+    }
+  } catch (err) { erroresPorCampo.caducidadImpresa = String(err?.message || err); }
+
+  // Respaldo: si la 1a pasada nunca detectó el banner como palabras (pasa
+  // con texto claro grande sobre fondo negro — confirmado en la etiqueta
+  // "agrupador"), localizar la banda oscura directamente por brillo y
+  // releerla aparte.
+  if (!resultado.caducidadImpresa) {
+    try {
+      const r = await extraerBannerOscuro(worker, canvasOriginal);
+      if (r) {
+        const m = r.texto.match(/(\d{1,2})\s*([A-Z]{3})\s*(\d{2,4})/i);
+        const mesTxt = m ? normaliza(m[2]).slice(0, 3) : null;
+        if (m && MESES_ABREV[mesTxt]) {
+          const anioTxt = m[3];
+          const anioCompleto = anioTxt.length === 2 ? `20${anioTxt}` : anioTxt;
+          resultado.caducidadImpresa = {
+            valor: `${anioCompleto}-${String(MESES_ABREV[mesTxt]).padStart(2, "0")}-${m[1].padStart(2, "0")}`,
+            confianza: r.confianza, fuente: "ocr",
+          };
+        }
+      }
+    } catch (err) { erroresPorCampo.caducidadImpresa = String(err?.message || err); }
+  }
+
   // Info de diagnóstico — no se usa para llenar campos, solo para poder ver
   // en la app (y mandarme captura) qué está leyendo realmente la cámara,
   // sin necesidad de consola de desarrollador.
   resultado._diagnostico = {
-    version: "ocr-v6-qr-y-sku-explicito",
+    version: "ocr-v7-fecha-maxima-frescura",
     textoCrudo: dataGeneral.text || "(vacío)",
     numPalabrasDetectadas: palabras.length,
     tamanoImagen: `${anchoImagen}x${altoImagen}`,
@@ -401,8 +506,12 @@ export function construirPendienteDesdeEscaneoInteligente({ codigoBarras, campos
     fechaProduccionISO = `${anio}-${m.padStart(2, "0")}-${d.padStart(2, "0")}T${horaStr}`;
   }
 
-  let agrupadorCaducidad = null;
-  if (fechaProduccionISO && infoCatalogo?.diasVida) {
+  // La fecha de máxima frescura/caducidad IMPRESA en la etiqueta (banner
+  // negro) siempre tiene prioridad — es la fuente de verdad real. Calcular
+  // producción + días_vida del catálogo solo se usa como respaldo si por
+  // alguna razón no se pudo leer esa fecha directo.
+  let agrupadorCaducidad = campos.caducidadImpresa?.valor || null;
+  if (!agrupadorCaducidad && fechaProduccionISO && infoCatalogo?.diasVida) {
     const f = new Date(fechaProduccionISO);
     f.setDate(f.getDate() + infoCatalogo.diasVida);
     agrupadorCaducidad = f.toISOString().slice(0, 10);
@@ -429,6 +538,7 @@ export function construirPendienteDesdeEscaneoInteligente({ codigoBarras, campos
       cajasXTarima: campos.cajasXTarima?.confianza ?? 0,
       centro: campos.centro?.confianza ?? 0,
       numeroTarima: campos.numeroTarima?.confianza ?? 0,
+      caducidadImpresa: campos.caducidadImpresa?.confianza ?? 0,
     },
   };
 }
