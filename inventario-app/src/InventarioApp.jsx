@@ -336,7 +336,10 @@ function ModalExportar({ onCerrar }) {
 // ===========================================================================
 function PantallaInicio({ onElegirModulo, onExportar }) {
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: ROJO }}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: ROJO, paddingTop: "calc(env(safe-area-inset-top) + 20px)" }}
+    >
       <div
         className="w-full bg-cover bg-top bg-no-repeat"
         style={{ backgroundImage: `url(${fondoInicio})`, aspectRatio: "625 / 733" }}
