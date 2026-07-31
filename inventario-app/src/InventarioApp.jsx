@@ -1859,7 +1859,7 @@ export default function InventarioApp() {
   const [familiaId, setFamiliaId] = useState(null);
 
   const [vista, setVista] = useState("escaner");
-  const [modoEscaneo, setModoEscaneo] = useState("camara");
+  const [modoEscaneo, setModoEscaneo] = useState("manual");
   const [escaneos, setEscaneos] = useState([]);
   const [flashOk, setFlashOk] = useState(false);
   const [ultimoError, setUltimoError] = useState(null);
@@ -1878,7 +1878,7 @@ export default function InventarioApp() {
   const reiniciarSesion = () => {
     setEscaneos([]);
     setVista("escaner");
-    setModoEscaneo("camara");
+    setModoEscaneo("manual");
     setSincronizado(null);
     setPantalla("inicio");
     setModulo(null);
@@ -2142,13 +2142,12 @@ export default function InventarioApp() {
         {vista === "escaner" && (
           <div className="space-y-4">
             {!esRetornable && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setModoEscaneo("camara")}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${modoEscaneo === "camara" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
-                >
-                  <Scan size={16} /> Con etiqueta
-                </button>
+              <div className="grid grid-cols-1 gap-2">
+                {/* Modo "Con etiqueta" (cámara/código de barras) oculto por
+                    ahora — la lectura no resultó confiable con varios
+                    diseños reales de etiqueta de planta. El código sigue
+                    existiendo (componente EscanerCamara más abajo) por si
+                    se retoma más adelante; solo se quitó el botón. */}
                 {/* Modo "Inteligente" (OCR) oculto por ahora — no daba
                     resultados confiables en pruebas reales de planta.
                     El código sigue existiendo (componente EscaneoInteligente
