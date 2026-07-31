@@ -6,6 +6,7 @@ import {
   CloudUpload, Search, Flashlight,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
+import fondoInicio from "./assets/fondo-inicio.png";
 import {
   BrowserMultiFormatReader, NotFoundException, DecodeHintType, BarcodeFormat,
 } from "@zxing/library";
@@ -336,14 +337,12 @@ function ModalExportar({ onCerrar }) {
 function PantallaInicio({ onElegirModulo, onExportar }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: ROJO }}>
-      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-20 h-20 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center mb-5">
-          {/* Espacio para logo real de la planta — reemplazar por <img src="..." /> */}
-          <span className="text-white font-black text-3xl tracking-tighter">CC</span>
-        </div>
-        <div className="text-white/80 text-xs tracking-[0.2em] font-medium mb-1">INVENTARIO DIGITAL</div>
-        <h1 className="text-white font-black text-2xl tracking-tight">{PLANTA}</h1>
-      </div>
+      <div
+        className="flex-1 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${fondoInicio})`, minHeight: "45vh" }}
+        role="img"
+        aria-label={`Inventario Digital — ${PLANTA}`}
+      />
 
       <div className="bg-[#0E1410] rounded-t-[28px] px-5 pt-7 pb-10 space-y-3">
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿QUÉ VAS A INVENTARIAR?</div>
