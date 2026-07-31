@@ -2375,7 +2375,8 @@ export default function InventarioApp() {
               }
             } catch (err) {
               console.error("Error al sincronizar:", err);
-              setUltimoError("No se pudo sincronizar. Verifica tu conexión e intenta de nuevo.");
+              const detalle = err?.message || err?.error_description || err?.hint || err?.details || JSON.stringify(err);
+              setUltimoError(`No se pudo sincronizar: ${detalle}`);
             } finally {
               setSincronizando(false);
             }
