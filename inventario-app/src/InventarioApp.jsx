@@ -476,7 +476,7 @@ function BarraSuperiorSimple({ titulo, onVolver }) {
 // ===========================================================================
 // MODAL DE SINCRONIZACIÓN — pide número de empleado, busca nombre en directorio
 // ===========================================================================
-function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizando }) {
+function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizando, error }) {
   const [numEmpleado, setNumEmpleado] = useState("");
   const [buscando, setBuscando] = useState(false);
   const [resultado, setResultado] = useState(null); // null | "no_encontrado" | nombre
@@ -554,6 +554,12 @@ function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizan
           <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-sm text-[#E8A8A8]">
             <XCircle size={16} className="mt-0.5 shrink-0" />
             No se encontró ese número de empleado en el directorio. Verifica el número.
+          </div>
+        )}
+
+        {error && (
+          <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-sm text-[#E8A8A8]">
+            <XCircle size={16} className="mt-0.5 shrink-0" /> {error}
           </div>
         )}
 
@@ -2250,7 +2256,7 @@ export default function InventarioApp() {
             ))}
             {escaneos.length > 0 && (
               <button
-                onClick={() => setMostrarSync(true)}
+                onClick={() => { setUltimoError(null); setMostrarSync(true); }}
                 className="w-full bg-[#161D14] border border-[#E2231A] text-[#E2231A] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 mt-2"
               >
                 <CloudUpload size={18} /> Terminar conteo y sincronizar
@@ -2317,7 +2323,8 @@ export default function InventarioApp() {
         <ModalSincronizar
           totalRegistros={escaneos.length}
           sincronizando={sincronizando}
-          onCancelar={() => setMostrarSync(false)}
+          error={ultimoError}
+          onCancelar={() => { setMostrarSync(false); setUltimoError(null); }}
           onConfirmar={async (datos) => {
             setSincronizando(true);
             try {
