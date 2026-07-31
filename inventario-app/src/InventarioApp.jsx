@@ -338,11 +338,11 @@ function PantallaInicio({ onElegirModulo, onExportar }) {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ backgroundColor: ROJO, paddingTop: "calc(env(safe-area-inset-top) + 20px)" }}
+      style={{ backgroundColor: ROJO, paddingTop: "env(safe-area-inset-top)" }}
     >
       <div
         className="w-full bg-cover bg-top bg-no-repeat"
-        style={{ backgroundImage: `url(${fondoInicio})`, aspectRatio: "625 / 733" }}
+        style={{ backgroundImage: `url(${fondoInicio})`, aspectRatio: "628 / 771" }}
         role="img"
         aria-label={`Inventario Digital — ${PLANTA}`}
       />
