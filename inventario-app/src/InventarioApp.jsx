@@ -365,7 +365,7 @@ function PantallaInicio({ onElegirModulo, onExportar }) {
         </button>
 
         <button
-          onClick={() => onElegirModulo("retornables")}
+          onClick={() => onElegirModulo("retornable")}
           className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
           <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
@@ -1863,7 +1863,7 @@ export default function InventarioApp() {
   // Navegación: inicio -> (submodo_pt | familia_retornable) -> sesion
   const [pantalla, setPantalla] = useState("inicio");
   const [mostrarExportar, setMostrarExportar] = useState(false);
-  const [modulo, setModulo] = useState(null);       // "producto_terminado" | "retornables"
+  const [modulo, setModulo] = useState(null);       // "producto_terminado" | "retornable"
   const [submodoPT, setSubmodoPT] = useState(null); // "tpm" | "sin_fechas"
   const [familiaId, setFamiliaId] = useState(null);
 
@@ -2046,7 +2046,7 @@ export default function InventarioApp() {
     : `Retornables · ${FAMILIAS_RETORNABLES.find((f) => f.id === familiaId)?.nombre || ""}`;
 
   const esTPM = modulo === "producto_terminado" && submodoPT === "tpm";
-  const esRetornable = modulo === "retornables";
+  const esRetornable = modulo === "retornable";
 
   // -------------------------------------------------------------------------
   // CARGA INICIAL DEL CATÁLOGO — bloquea todo hasta tener datos de Supabase
