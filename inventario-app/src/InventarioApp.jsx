@@ -338,7 +338,7 @@ function PantallaInicio({ onElegirModulo, onExportar }) {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ backgroundColor: ROJO, paddingTop: "env(safe-area-inset-top)" }}
+      style={{ backgroundColor: ROJO }}
     >
       <div
         className="w-full bg-cover bg-top bg-no-repeat"
