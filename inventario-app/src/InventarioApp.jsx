@@ -43,6 +43,38 @@ async function insertarYDevolver(table, row) {
   return data;
 }
 
+const CLAVE_SESION_GUARDADA = "inventario_sesion_v1";
+
+// Recupera un conteo sin sincronizar que se haya quedado a medias (la app se
+// cerró, se recargó, se quedó sin batería, etc.). Solo se restaura si de
+// verdad hay algo capturado — si está vacío, no tiene caso "recuperar" nada.
+function cargarSesionGuardada() {
+  try {
+    const raw = localStorage.getItem(CLAVE_SESION_GUARDADA);
+    if (!raw) return null;
+    const datos = JSON.parse(raw);
+    if (!datos || !Array.isArray(datos.escaneos) || datos.escaneos.length === 0) return null;
+    return datos;
+  } catch {
+    return null;
+  }
+}
+
+function guardarSesionEnLocalStorage(datos) {
+  try {
+    localStorage.setItem(CLAVE_SESION_GUARDADA, JSON.stringify(datos));
+  } catch (err) {
+    console.warn("No se pudo guardar el progreso local:", err);
+  }
+}
+
+function borrarSesionGuardada() {
+  try {
+    localStorage.removeItem(CLAVE_SESION_GUARDADA);
+  } catch {}
+}
+
+
 // ===========================================================================
 // IDENTIDAD DE PLANTA
 // ===========================================================================
@@ -1861,30 +1893,43 @@ export default function InventarioApp() {
   }, []);
 
   // Navegación: inicio -> (submodo_pt | familia_retornable) -> sesion
-  const [pantalla, setPantalla] = useState("inicio");
+  const [sesionRecuperada] = useState(() => cargarSesionGuardada());
+  const [pantalla, setPantalla] = useState(() => (sesionRecuperada ? "sesion" : "inicio"));
   const [mostrarExportar, setMostrarExportar] = useState(false);
-  const [modulo, setModulo] = useState(null);       // "producto_terminado" | "retornable"
-  const [submodoPT, setSubmodoPT] = useState(null); // "tpm" | "sin_fechas"
-  const [familiaId, setFamiliaId] = useState(null);
+  const [modulo, setModulo] = useState(() => sesionRecuperada?.modulo ?? null);       // "producto_terminado" | "retornable"
+  const [submodoPT, setSubmodoPT] = useState(() => sesionRecuperada?.submodoPT ?? null); // "tpm" | "sin_fechas"
+  const [familiaId, setFamiliaId] = useState(() => sesionRecuperada?.familiaId ?? null);
 
   const [vista, setVista] = useState("escaner");
   const [modoEscaneo, setModoEscaneo] = useState("manual");
-  const [escaneos, setEscaneos] = useState([]);
+  const [escaneos, setEscaneos] = useState(() => sesionRecuperada?.escaneos ?? []);
   const [flashOk, setFlashOk] = useState(false);
   const [ultimoError, setUltimoError] = useState(null);
   const [demoIdx, setDemoIdx] = useState(0);
   const [inputManual, setInputManual] = useState("");
   const [pendiente, setPendiente] = useState(null);
   const [mostrarSync, setMostrarSync] = useState(false);
-  const [ubicacionSesion, setUbicacionSesion] = useState(UBICACIONES_DEMO[0]);
+  const [ubicacionSesion, setUbicacionSesion] = useState(() => sesionRecuperada?.ubicacionSesion ?? UBICACIONES_DEMO[0]);
   const [mostrarUbicacionSesion, setMostrarUbicacionSesion] = useState(false);
-  const [ubicacionSesionLibre, setUbicacionSesionLibre] = useState("");
+  const [ubicacionSesionLibre, setUbicacionSesionLibre] = useState(() => sesionRecuperada?.ubicacionSesionLibre ?? "");
   const [sincronizado, setSincronizado] = useState(null); // { numEmpleado, nombre }
   const [sesionId, setSesionId] = useState(null); // UUID de la sesión actual en Supabase
   const [sincronizando, setSincronizando] = useState(false);
+  const [mostrarAvisoRecuperado, setMostrarAvisoRecuperado] = useState(() => !!sesionRecuperada);
   const liveRegionRef = useRef(null);
 
+  // Guarda automáticamente el progreso en el navegador cada vez que cambia
+  // algo — así, si la app se cierra, se recarga, o el celular se queda sin
+  // batería ANTES de sincronizar, el conteo no se pierde: la próxima vez
+  // que se abra, se restaura solo (ver sesionRecuperada arriba).
+  useEffect(() => {
+    if (pantalla === "sesion" && escaneos.length > 0) {
+      guardarSesionEnLocalStorage({ modulo, submodoPT, familiaId, escaneos, ubicacionSesion, ubicacionSesionLibre });
+    }
+  }, [pantalla, modulo, submodoPT, familiaId, escaneos, ubicacionSesion, ubicacionSesionLibre]);
+
   const reiniciarSesion = () => {
+    borrarSesionGuardada();
     setEscaneos([]);
     setVista("escaner");
     setModoEscaneo("manual");
@@ -2147,6 +2192,18 @@ export default function InventarioApp() {
         ))}
       </nav>
 
+      {mostrarAvisoRecuperado && (
+        <div className="mx-4 mt-3 flex items-start gap-2 bg-[#1B2119] border border-[#F2C879] rounded-lg p-3">
+          <CheckCircle2 size={16} className="text-[#F2C879] mt-0.5 shrink-0" />
+          <div className="flex-1 text-[12px] text-[#EDEAE2]">
+            Se recuperó tu conteo anterior — tenías <strong>{escaneos.length}</strong> registro(s) sin sincronizar y no se perdieron.
+          </div>
+          <button onClick={() => setMostrarAvisoRecuperado(false)} className="text-[#6E776A] hover:text-[#EDEAE2] shrink-0">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <main className="px-4 py-5 max-w-md mx-auto">
         {vista === "escaner" && (
           <div className="space-y-4">
@@ -2368,6 +2425,7 @@ export default function InventarioApp() {
                 .eq("id", sesion.id);
 
               setSesionId(sesion.id);
+              borrarSesionGuardada();
               setSincronizado(datos);
               setMostrarSync(false);
               if (liveRegionRef.current) {
