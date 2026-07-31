@@ -218,9 +218,122 @@ function aCajasEquivalentes(cantidad, unidad, cajasXTarima) {
 }
 
 // ===========================================================================
+// EXPORTAR REPORTE — botón protegido por PIN compartido (no hay login
+// individual en esta app, así que un PIN de supervisor es el control de
+// acceso más simple y coherente con el resto del diseño). Al validarse,
+// consulta las 2 vistas de Supabase y descarga los 2 CSV que necesita
+// generar_inventario_final.py.
+// ===========================================================================
+const PIN_EXPORTAR = "2468"; // <- cambia este PIN aquí cuando quieras
+
+function csvDesdeFilas(filas) {
+  if (!filas || filas.length === 0) return "";
+  const columnas = Object.keys(filas[0]);
+  const escapar = (v) => {
+    if (v === null || v === undefined) return "";
+    const s = String(v);
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  };
+  const lineas = [columnas.join(",")];
+  for (const fila of filas) lineas.push(columnas.map((c) => escapar(fila[c])).join(","));
+  return lineas.join("\n");
+}
+
+function descargarArchivo(nombre, contenido) {
+  const blob = new Blob(["\uFEFF" + contenido], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function ModalExportar({ onCerrar }) {
+  const [pin, setPin] = useState("");
+  const [fase, setFase] = useState("pin"); // pin | exportando | listo
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const validarYExportar = async () => {
+    if (pin !== PIN_EXPORTAR) {
+      setErrorMsg("PIN incorrecto");
+      return;
+    }
+    setErrorMsg("");
+    setFase("exportando");
+    try {
+      const [{ data: catalogo, error: e1 }, { data: escaneado, error: e2 }] = await Promise.all([
+        supabase.from("vista_catalogo_export").select("*"),
+        supabase.from("vista_escaneado_export").select("*"),
+      ]);
+      if (e1) throw e1;
+      if (e2) throw e2;
+      const fecha = new Date().toISOString().slice(0, 10);
+      descargarArchivo(`catalogo_${fecha}.csv`, csvDesdeFilas(catalogo));
+      descargarArchivo(`escaneado_${fecha}.csv`, csvDesdeFilas(escaneado));
+      setFase("listo");
+    } catch (err) {
+      console.error("Error exportando:", err);
+      setErrorMsg("No se pudo exportar: " + (err.message || String(err)));
+      setFase("pin");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+      <div className="bg-[#161D14] border border-[#2A332C] rounded-2xl w-full max-w-xs p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="text-[#EDEAE2] font-bold">Exportar reporte</div>
+          <button onClick={onCerrar} className="text-[#6E776A] hover:text-[#EDEAE2]"><X size={20} /></button>
+        </div>
+
+        {fase === "pin" && (
+          <>
+            <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">PIN de supervisor</label>
+            <input
+              type="password" inputMode="numeric" value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && validarYExportar()}
+              style={{ color: "#EDEAE2" }}
+              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-lg text-center tracking-[0.4em] focus:outline-none focus:border-[#E2231A]"
+              autoFocus
+            />
+            {errorMsg && <div className="text-[11px] text-[#E8A8A8]">{errorMsg}</div>}
+            <button onClick={validarYExportar} className="w-full bg-[#E2231A] text-white font-bold py-3 rounded-xl">
+              Exportar catálogo + escaneado
+            </button>
+          </>
+        )}
+
+        {fase === "exportando" && (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#2A332C", borderTopColor: "#E2231A" }} />
+            <div className="text-sm" style={{ color: "#8A9389" }}>Exportando desde Supabase…</div>
+          </div>
+        )}
+
+        {fase === "listo" && (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <CheckCircle2 size={32} className="text-[#9FD3A6]" />
+            <div className="text-sm text-center" style={{ color: "#EDEAE2" }}>
+              Listo — se descargaron 2 archivos (catálogo y escaneado) a tu carpeta de descargas.
+            </div>
+            <button onClick={onCerrar} className="w-full bg-[#1B2119] border border-[#2A332C] text-[#EDEAE2] font-medium py-2.5 rounded-xl">
+              Cerrar
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
 // PANTALLA DE BIENVENIDA / SELECCIÓN DE MÓDULO
 // ===========================================================================
-function PantallaInicio({ onElegirModulo }) {
+function PantallaInicio({ onElegirModulo, onExportar }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: ROJO }}>
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
@@ -261,6 +374,13 @@ function PantallaInicio({ onElegirModulo }) {
             <div className="text-[#8A9389] text-xs mt-0.5">Vidrio, Ref PET, Tarimas, Garrafón, Embalaje</div>
           </div>
           <ChevronRight size={20} className="text-[#6E776A]" />
+        </button>
+
+        <button
+          onClick={onExportar}
+          className="w-full text-center py-3 text-[12px] text-[#6E776A] active:text-[#8A9389]"
+        >
+          Exportar reporte (supervisores)
         </button>
       </div>
     </div>
@@ -1730,6 +1850,7 @@ export default function InventarioApp() {
 
   // Navegación: inicio -> (submodo_pt | familia_retornable) -> sesion
   const [pantalla, setPantalla] = useState("inicio");
+  const [mostrarExportar, setMostrarExportar] = useState(false);
   const [modulo, setModulo] = useState(null);       // "producto_terminado" | "retornables"
   const [submodoPT, setSubmodoPT] = useState(null); // "tpm" | "sin_fechas"
   const [familiaId, setFamiliaId] = useState(null);
@@ -1942,7 +2063,12 @@ export default function InventarioApp() {
   // RUTEO DE PANTALLAS PREVIAS A LA SESIÓN
   // -------------------------------------------------------------------------
   if (pantalla === "inicio") {
-    return <PantallaInicio onElegirModulo={elegirModulo} />;
+    return (
+      <>
+        <PantallaInicio onElegirModulo={elegirModulo} onExportar={() => setMostrarExportar(true)} />
+        {mostrarExportar && <ModalExportar onCerrar={() => setMostrarExportar(false)} />}
+      </>
+    );
   }
   if (pantalla === "submodo_pt") {
     return <PantallaSubmodoPT onElegir={elegirSubmodoPT} onVolver={() => setPantalla("inicio")} />;
