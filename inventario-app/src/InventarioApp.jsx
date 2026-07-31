@@ -338,13 +338,13 @@ function PantallaInicio({ onElegirModulo, onExportar }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: ROJO }}>
       <div
-        className="flex-1 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${fondoInicio})`, minHeight: "45vh" }}
+        className="w-full bg-cover bg-top bg-no-repeat"
+        style={{ backgroundImage: `url(${fondoInicio})`, aspectRatio: "625 / 733" }}
         role="img"
         aria-label={`Inventario Digital — ${PLANTA}`}
       />
 
-      <div className="bg-[#0E1410] rounded-t-[28px] px-5 pt-7 pb-10 space-y-3">
+      <div className="flex-1 bg-[#0E1410] rounded-t-[28px] px-5 pt-7 pb-10 space-y-3">
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿QUÉ VAS A INVENTARIAR?</div>
 
         <button
