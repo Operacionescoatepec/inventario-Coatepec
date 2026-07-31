@@ -456,7 +456,10 @@ function PantallaFamilia({ onElegir, onVolver }) {
 
 function BarraSuperiorSimple({ titulo, onVolver }) {
   return (
-    <header className="px-4 py-3 flex items-center gap-3 border-b border-[#2A332C]">
+    <header
+      className="px-4 flex items-center gap-3 border-b border-[#2A332C]"
+      style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))", paddingBottom: "0.75rem" }}
+    >
       <button onClick={onVolver} className="text-[#8A9389] hover:text-[#EDEAE2]">
         <ChevronLeft size={22} />
       </button>
@@ -773,8 +776,8 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
                 type="date"
                 value={fechaManual}
                 onChange={(e) => setFechaManual(e.target.value)}
-                style={{ color: "#EDEAE2" }}
-                className="w-full mono bg-[#1B2119] border border-[#F2C879] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
+                style={{ color: "#EDEAE2", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
+                className="w-full max-w-full block mono bg-[#1B2119] border border-[#F2C879] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
               />
             </div>
           </div>
@@ -988,8 +991,8 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar }) {
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              style={{ color: "#EDEAE2" }}
-              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
+              style={{ color: "#EDEAE2", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
+              className="w-full max-w-full block mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
             />
           </div>
         </div>
@@ -2091,8 +2094,8 @@ export default function InventarioApp() {
       `}</style>
 
       <header
-        style={{ backgroundColor: "#E2231A" }}
-        className="sticky top-0 z-20 px-4 py-3 flex items-center justify-between"
+        style={{ backgroundColor: "#E2231A", paddingTop: "calc(0.75rem + env(safe-area-inset-top))", paddingBottom: "0.75rem" }}
+        className="sticky top-0 z-20 px-4 flex items-center justify-between"
       >
         <div className="flex items-center gap-2.5">
           <button onClick={() => setPantalla(modulo === "producto_terminado" ? "submodo_pt" : "familia_retornable")} style={{ color: "#FFFFFF" }}>
