@@ -225,7 +225,7 @@ function aCajasEquivalentes(cantidad, unidad, cajasXTarima) {
 // consulta las 2 vistas de Supabase y descarga los 2 CSV que necesita
 // generar_inventario_final.py.
 // ===========================================================================
-const PIN_EXPORTAR = "2468"; // <- cambia este PIN aquí cuando quieras
+const PIN_EXPORTAR = "3133"; // <- cambia este PIN aquí cuando quieras
 
 function csvDesdeFilas(filas) {
   if (!filas || filas.length === 0) return "";
