@@ -364,9 +364,123 @@ function ModalExportar({ onCerrar }) {
 }
 
 // ===========================================================================
+// BORRAR BASE DE DATOS — mismo PIN de supervisor, pero con una confirmación
+// extra (escribir la palabra "BORRAR") porque es una acción irreversible.
+// Borra registros y sesiones de TODAS las plantas/fechas — pensado para
+// limpiar datos de prueba antes de arrancar un conteo real.
+// ===========================================================================
+function ModalBorrarBaseDeDatos({ onCerrar }) {
+  const [pin, setPin] = useState("");
+  const [textoConfirmacion, setTextoConfirmacion] = useState("");
+  const [fase, setFase] = useState("pin"); // pin | confirmar | borrando | listo
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const validarPin = () => {
+    if (pin !== PIN_EXPORTAR) {
+      setErrorMsg("PIN incorrecto");
+      return;
+    }
+    setErrorMsg("");
+    setFase("confirmar");
+  };
+
+  const borrarTodo = async () => {
+    setFase("borrando");
+    try {
+      // Se borran registros primero de forma explícita (aunque "sesiones"
+      // ya tiene on delete cascade) para no depender solo de esa relación.
+      const { error: e1 } = await supabase.from("registros").delete().gte("creado_en", "1900-01-01");
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from("sesiones").delete().gte("iniciada_en", "1900-01-01");
+      if (e2) throw e2;
+      setFase("listo");
+    } catch (err) {
+      console.error("Error borrando base de datos:", err);
+      setErrorMsg("No se pudo borrar: " + (err.message || String(err)));
+      setFase("confirmar");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+      <div className="bg-[#161D14] border border-[#5A2A2A] rounded-2xl w-full max-w-xs p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="text-[#E8A8A8] font-bold">Borrar base de datos</div>
+          <button onClick={onCerrar} className="text-[#6E776A] hover:text-[#EDEAE2]"><X size={20} /></button>
+        </div>
+
+        {fase === "pin" && (
+          <>
+            <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">PIN de supervisor</label>
+            <input
+              type="password" inputMode="numeric" value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && validarPin()}
+              style={{ color: "#EDEAE2" }}
+              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-lg text-center tracking-[0.4em] focus:outline-none focus:border-[#E2231A]"
+              autoFocus
+            />
+            {errorMsg && <div className="text-[11px] text-[#E8A8A8]">{errorMsg}</div>}
+            <button onClick={validarPin} className="w-full bg-[#1B2119] border border-[#5A2A2A] text-[#E8A8A8] font-bold py-3 rounded-xl">
+              Continuar
+            </button>
+          </>
+        )}
+
+        {fase === "confirmar" && (
+          <>
+            <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-[12px] text-[#E8A8A8]">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              Esto borra TODOS los conteos y sesiones de Supabase (de cualquier fecha o planta) — no se puede deshacer. Úsalo solo para limpiar datos de prueba antes de un conteo real.
+            </div>
+            <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">
+              Escribe <span className="mono text-[#E8A8A8]">BORRAR</span> para confirmar
+            </label>
+            <input
+              type="text" value={textoConfirmacion}
+              onChange={(e) => setTextoConfirmacion(e.target.value)}
+              style={{ color: "#EDEAE2" }}
+              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-center tracking-widest focus:outline-none focus:border-[#E2231A]"
+              autoFocus
+            />
+            {errorMsg && <div className="text-[11px] text-[#E8A8A8]">{errorMsg}</div>}
+            <button
+              onClick={borrarTodo}
+              disabled={textoConfirmacion.trim().toUpperCase() !== "BORRAR"}
+              className="w-full bg-[#E2231A] text-white font-bold py-3 rounded-xl disabled:opacity-40"
+            >
+              Borrar todo permanentemente
+            </button>
+          </>
+        )}
+
+        {fase === "borrando" && (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#2A332C", borderTopColor: "#E2231A" }} />
+            <div className="text-sm" style={{ color: "#8A9389" }}>Borrando en Supabase…</div>
+          </div>
+        )}
+
+        {fase === "listo" && (
+          <div className="flex flex-col items-center gap-3 py-4">
+            <CheckCircle2 size={32} className="text-[#9FD3A6]" />
+            <div className="text-sm text-center" style={{ color: "#EDEAE2" }}>
+              Listo — la base de datos quedó vacía, lista para un conteo nuevo.
+            </div>
+            <button onClick={onCerrar} className="w-full bg-[#1B2119] border border-[#2A332C] text-[#EDEAE2] font-medium py-2.5 rounded-xl">
+              Cerrar
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
 // PANTALLA DE BIENVENIDA / SELECCIÓN DE MÓDULO
 // ===========================================================================
-function PantallaInicio({ onElegirModulo, onExportar }) {
+function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -415,6 +529,12 @@ function PantallaInicio({ onElegirModulo, onExportar }) {
           className="w-full text-center py-3 text-[12px] text-[#6E776A] active:text-[#8A9389]"
         >
           Exportar reporte (supervisores)
+        </button>
+        <button
+          onClick={onBorrarBD}
+          className="w-full text-center pb-1 text-[11px] text-[#5A3A3A] active:text-[#E8A8A8]"
+        >
+          Borrar base de datos (supervisores)
         </button>
       </div>
     </div>
@@ -1237,7 +1357,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
             onChange={(e) => setTarimaActual(e.target.value)}
             onKeyDown={onKeyDownTarima}
             placeholder={info.esPieza ? "Cant. ↵" : "Tarimas ↵"}
-            className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-md px-2 py-2 text-sm font-bold text-center placeholder:text-[#4A524A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
+            className="w-full mono bg-[#1B2119] border-2 border-white rounded-md px-2 py-2 text-sm font-bold text-center placeholder:text-[#4A524A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
           />
           {estibas.length > 0 && (
             <div className="flex gap-1 mt-1 justify-center flex-wrap">
@@ -1267,7 +1387,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
               onChange={(e) => setRestoActual(e.target.value)}
               onKeyDown={onKeyDownResto}
               placeholder="Restos ↵"
-              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-md px-2 py-2 text-sm font-bold text-center placeholder:text-[#4A524A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
+              className="w-full mono bg-[#1B2119] border-2 border-white rounded-md px-2 py-2 text-sm font-bold text-center placeholder:text-[#4A524A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
             />
             {restosLista.length > 0 && (
               <div className="flex gap-1 mt-1 justify-center flex-wrap">
@@ -1896,6 +2016,7 @@ export default function InventarioApp() {
   const [sesionRecuperada] = useState(() => cargarSesionGuardada());
   const [pantalla, setPantalla] = useState(() => (sesionRecuperada ? "sesion" : "inicio"));
   const [mostrarExportar, setMostrarExportar] = useState(false);
+  const [mostrarBorrarBD, setMostrarBorrarBD] = useState(false);
   const [modulo, setModulo] = useState(() => sesionRecuperada?.modulo ?? null);       // "producto_terminado" | "retornable"
   const [submodoPT, setSubmodoPT] = useState(() => sesionRecuperada?.submodoPT ?? null); // "tpm" | "sin_fechas"
   const [familiaId, setFamiliaId] = useState(() => sesionRecuperada?.familiaId ?? null);
@@ -2122,8 +2243,9 @@ export default function InventarioApp() {
   if (pantalla === "inicio") {
     return (
       <>
-        <PantallaInicio onElegirModulo={elegirModulo} onExportar={() => setMostrarExportar(true)} />
+        <PantallaInicio onElegirModulo={elegirModulo} onExportar={() => setMostrarExportar(true)} onBorrarBD={() => setMostrarBorrarBD(true)} />
         {mostrarExportar && <ModalExportar onCerrar={() => setMostrarExportar(false)} />}
+        {mostrarBorrarBD && <ModalBorrarBaseDeDatos onCerrar={() => setMostrarBorrarBD(false)} />}
       </>
     );
   }
@@ -2486,12 +2608,12 @@ function EscaneoDetalle({ e, compact, catalogo }) {
         <span className="mono text-base font-bold text-[#9FD3A6]">{Math.round(e.cantidad)}</span>
         <span className="text-xs text-[#8A9389]">{e.unidad === "tarimas" ? "tarimas" : e.unidad === "piezas" ? "piezas" : "cajas"}</span>
         {e.unidad === "tarimas" && e.cajasXTarima && (
-          <span className="mono text-[11px] text-[#6E776A]">
+          <span className="mono text-sm font-medium text-[#C9CFC5]">
             (× {e.cajasXTarima} = <span className="text-[#9FD3A6] font-bold">{e.cantidad * e.cajasXTarima} cajas</span>)
           </span>
         )}
         {e.tarimasCompletas != null && e.factor != null && (
-          <span className="mono text-[11px] text-[#6E776A]">
+          <span className="mono text-sm font-medium text-[#C9CFC5]">
             ({e.tarimasCompletas} × {e.factor}{e.restos ? ` + ${e.restos}` : ""})
           </span>
         )}
