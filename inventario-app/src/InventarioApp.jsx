@@ -2294,10 +2294,13 @@ export default function InventarioApp() {
         style={{ backgroundColor: "#10160F" }}
         className="flex border-b border-[#2A332C] sticky top-[57px] z-20"
       >
+        {/* Pestaña "Comparar" oculta — el stock ahora se compara con la
+            macro/Excel (generar_inventario_final.py o el .bas), no dentro
+            de la app. El código de esta vista sigue existiendo más abajo
+            (vista === "comparacion") por si se retoma más adelante. */}
         {[
           { id: "escaner", label: "Escanear", icon: Scan },
           { id: "revision", label: "Revisar", icon: ClipboardList },
-          { id: "comparacion", label: "Comparar", icon: Upload },
         ].map((t) => (
           <button
             key={t.id}
