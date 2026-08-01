@@ -1281,16 +1281,16 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
   };
 
   return (
-    <div className="bg-[#161D14] border border-[#2A332C] rounded-xl p-3 space-y-2.5">
+    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3 space-y-2.5">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="mono text-[11px] text-[#E2231A] font-bold">{info.sku}</div>
-          <div className="text-[13px] text-[#EDEAE2] font-medium leading-snug">{info.nombre}</div>
+          <div className="text-[13px] text-[#1A1A1A] font-medium leading-snug">{info.nombre}</div>
         </div>
         {totalAcumulado > 0 && (
           <div className="shrink-0 text-right">
-            <div className="mono text-base font-bold text-[#9FD3A6]">{Math.round(totalAcumulado)}</div>
-            <div className="text-[9px] text-[#6E776A]">total guardado</div>
+            <div className="mono text-base font-bold text-[#1F7A3D]">{Math.round(totalAcumulado)}</div>
+            <div className="text-[9px] text-[#4A4A4A]">total guardado</div>
           </div>
         )}
       </div>
@@ -1301,7 +1301,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
             <button
               key={est}
               onClick={() => setEstado(est)}
-              className={`py-1.5 rounded-md border text-xs font-medium ${estado === est ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
+              className={`py-1.5 rounded-md border text-xs font-medium ${estado === est ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#C4C4C4] text-[#1A1A1A]"}`}
             >
               {est}
             </button>
@@ -1320,16 +1320,16 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
                 onChange={(e) => setFactorElegido(e.target.value === "" ? "" : Number(e.target.value))}
                 onBlur={() => setEditandoFactor(false)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setEditandoFactor(false); inputTarimaRef.current?.focus(); } }}
-                className="w-14 mono text-xs font-bold bg-[#1B2119] border border-[#E2231A] rounded-md px-1.5 py-2 text-[#EDEAE2] text-center focus:outline-none"
+                className="w-14 mono text-xs font-bold bg-white border-2 border-[#E2231A] rounded-md px-1.5 py-2 text-[#1A1A1A] text-center focus:outline-none"
               />
             ) : (
               <button
                 onClick={() => setEditandoFactor(true)}
                 onMouseDown={(e) => e.preventDefault()}
-                className="mono text-xs font-bold bg-[#1B2119] border border-[#2A332C] rounded-md px-2 py-2 text-[#C9CFC5] flex items-center gap-1 whitespace-nowrap"
+                className="mono text-xs font-bold bg-white border border-[#8A8A8A] rounded-md px-2 py-2 text-[#1A1A1A] flex items-center gap-1 whitespace-nowrap"
               >
                 ×{factorElegido}
-                <PenLine size={10} className="text-[#6E776A]" />
+                <PenLine size={10} className="text-[#4A4A4A]" />
               </button>
             )}
             {info.factores?.length > 1 && !editandoFactor && (
@@ -1338,7 +1338,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
                   <button
                     key={f}
                     onClick={() => setFactorElegido(f)}
-                    className={`mono text-[9px] rounded px-1.5 py-0.5 ${factorElegido === f ? "bg-[#E2231A] text-white" : "bg-[#1B2119] text-[#6E776A]"}`}
+                    className={`mono text-[9px] rounded px-1.5 py-0.5 border ${factorElegido === f ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white text-[#4A4A4A] border-[#C4C4C4]"}`}
                   >
                     {f}
                   </button>
@@ -1357,7 +1357,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
             onChange={(e) => setTarimaActual(e.target.value)}
             onKeyDown={onKeyDownTarima}
             placeholder={info.esPieza ? "Cant. ↵" : "Tarimas ↵"}
-            className="w-full mono bg-[#1B2119] border-2 border-white rounded-md px-2 py-2 text-sm font-bold text-center placeholder:text-[#4A524A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
+            className="w-full mono bg-white border-2 border-[#1A1A1A] rounded-md px-2 py-2 text-sm font-bold text-[#1A1A1A] text-center placeholder:text-[#8A8A8A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
           />
           {estibas.length > 0 && (
             <div className="flex gap-1 mt-1 justify-center flex-wrap">
@@ -1371,7 +1371,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
           {estibas.length === 0 && historialTarimas.length > 0 && (
             <div className="flex gap-1 mt-1 justify-center">
               {historialTarimas.map((v, i) => (
-                <span key={i} className="mono text-[9px] bg-[#1B2119] text-[#6E776A] rounded px-1.5 py-0.5">{Math.round(v)}</span>
+                <span key={i} className="mono text-[9px] bg-[#1B2119] text-[#C9CFC5] rounded px-1.5 py-0.5">{Math.round(v)}</span>
               ))}
             </div>
           )}
@@ -1387,7 +1387,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
               onChange={(e) => setRestoActual(e.target.value)}
               onKeyDown={onKeyDownResto}
               placeholder="Restos ↵"
-              className="w-full mono bg-[#1B2119] border-2 border-white rounded-md px-2 py-2 text-sm font-bold text-center placeholder:text-[#4A524A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
+              className="w-full mono bg-white border-2 border-[#1A1A1A] rounded-md px-2 py-2 text-sm font-bold text-[#1A1A1A] text-center placeholder:text-[#8A8A8A] placeholder:font-normal placeholder:text-[10px] focus:outline-none focus:border-[#E2231A]"
             />
             {restosLista.length > 0 && (
               <div className="flex gap-1 mt-1 justify-center flex-wrap">
@@ -1401,7 +1401,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
             {restosLista.length === 0 && historialRestos.length > 0 && (
               <div className="flex gap-1 mt-1 justify-center">
                 {historialRestos.map((v, i) => (
-                  <span key={i} className="mono text-[9px] bg-[#1B2119] text-[#6E776A] rounded px-1.5 py-0.5">{Math.round(v)}</span>
+                  <span key={i} className="mono text-[9px] bg-[#1B2119] text-[#C9CFC5] rounded px-1.5 py-0.5">{Math.round(v)}</span>
                 ))}
               </div>
             )}
@@ -1410,7 +1410,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
       </div>
 
       {(estibas.length > 0 || restosLista.length > 0 || tarimaActual || restoActual) && (
-        <div className="text-[11px] text-[#9FD3A6] mono bg-[#0E1410] rounded-lg px-2.5 py-2">
+        <div className="text-[12px] text-[#9FD3A6] mono bg-[#0E1410] rounded-lg px-2.5 py-2 font-medium">
           {!info.esPieza ? (
             <>= {tarimasFinal} × {factorElegido}{restosFinal ? ` + ${restosFinal}` : ""} = <span className="font-bold">{Math.round(totalPiezasPreview)} piezas</span></>
           ) : (
@@ -1420,7 +1420,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
       )}
 
       {listaImplicitos.length > 0 && tarimasFinal > 0 && (
-        <div className="text-[10px] text-[#9FD3A6] flex flex-wrap gap-x-2">
+        <div className="text-[11px] text-[#1F7A3D] font-medium flex flex-wrap gap-x-2">
           {listaImplicitos.map((imp) => (
             <span key={imp.sku}>+ {Math.round(imp.esSimple ? totalPiezasPreview : tarimasFinal * imp.porTarima)} {imp.nombre}</span>
           ))}
@@ -1435,11 +1435,11 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
         style={
           hayAlgoQueGuardar
             ? { backgroundColor: "#3FA85C", color: "#FFFFFF", borderColor: "#3FA85C" }
-            : { backgroundColor: "#2A332C", color: "#8A9389", borderColor: "#4A524A" }
+            : { backgroundColor: "#C4C4C4", color: "#6A6A6A", borderColor: "#B0B0B0" }
         }
         className="w-full font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-1.5 transition-transform border-2 active:scale-[0.98] disabled:active:scale-100"
       >
-        <CheckCircle2 size={15} color={hayAlgoQueGuardar ? "#FFFFFF" : "#8A9389"} /> Confirmar bloque
+        <CheckCircle2 size={15} color={hayAlgoQueGuardar ? "#FFFFFF" : "#6A6A6A"} /> Confirmar bloque
       </button>
     </div>
   );
