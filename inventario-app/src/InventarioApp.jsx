@@ -2426,9 +2426,9 @@ export default function InventarioApp() {
               </div>
             )}
             {escaneos.map((e) => (
-              <div key={e.id} className="bg-[#161D14] border border-[#2A332C] rounded-xl p-3.5 flex items-start justify-between gap-3">
+              <div key={e.id} className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3.5 flex items-start justify-between gap-3">
                 <EscaneoDetalle e={e} compact catalogo={catalogoActivo} />
-                <button onClick={() => eliminarEscaneo(e.id)} className="text-[#6E776A] hover:text-[#E8A8A8] shrink-0 mt-0.5">
+                <button onClick={() => eliminarEscaneo(e.id)} className="text-[#8A8A8A] hover:text-[#E2231A] shrink-0 mt-0.5">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -2594,30 +2594,36 @@ function EscaneoDetalle({ e, compact, catalogo }) {
   const dias = e.agrupadorCaducidad ? diasParaCaducar(e.agrupadorCaducidad) : null;
   const venceProto = dias !== null && dias <= 30;
   const nombre = e.nombre || catalogo?.[e.productoId]?.nombre || (e.unidad === "piezas" ? "No catalogado" : "Producto no catalogado");
+  // "compact" = tarjetas de la pestaña Revisar, que ahora tienen fondo gris
+  // claro (para verse bien con sol directo) — por eso usan texto oscuro en
+  // vez del texto claro que se usa sobre las tarjetas de fondo oscuro.
+  const colorTexto = compact ? "#1A1A1A" : "#EDEAE2";
+  const colorSecundario = compact ? "#4A4A4A" : "#8A9389";
+  const colorChevron = compact ? "#8A8A8A" : "#4A524A";
   return (
     <div className={compact ? "flex-1" : ""}>
       <div className="flex items-center gap-2 flex-wrap">
         <span className="mono text-sm font-bold text-[#E2231A]">{e.productoId}</span>
-        <ChevronRight size={12} className="text-[#4A524A]" />
-        <span className="text-sm text-[#EDEAE2]">{nombre}</span>
+        <ChevronRight size={12} style={{ color: colorChevron }} />
+        <span className="text-sm" style={{ color: colorTexto }}>{nombre}</span>
         {e.esManual && <span className="text-[9px] bg-[#2A2418] text-[#F2C879] px-1.5 py-0.5 rounded-full tracking-wide">MANUAL</span>}
         {e.esImplicito && <span className="text-[9px] bg-[#15201A] text-[#9FD3A6] px-1.5 py-0.5 rounded-full tracking-wide">AUTO · de {e.deSku}</span>}
         {e.estado && <span className="text-[9px] bg-[#1B2119] text-[#C9CFC5] px-1.5 py-0.5 rounded-full tracking-wide">{e.estado}</span>}
       </div>
       <div className="flex items-center gap-2 mt-2 flex-wrap">
-        <span className="mono text-base font-bold text-[#9FD3A6]">{Math.round(e.cantidad)}</span>
-        <span className="text-xs text-[#8A9389]">{e.unidad === "tarimas" ? "tarimas" : e.unidad === "piezas" ? "piezas" : "cajas"}</span>
+        <span className="mono text-base font-bold" style={{ color: compact ? "#1F7A3D" : "#9FD3A6" }}>{Math.round(e.cantidad)}</span>
+        <span className="text-xs" style={{ color: colorSecundario }}>{e.unidad === "tarimas" ? "tarimas" : e.unidad === "piezas" ? "piezas" : "cajas"}</span>
         {e.unidad === "tarimas" && e.cajasXTarima && (
-          <span className="mono text-sm font-medium text-[#C9CFC5]">
-            (× {e.cajasXTarima} = <span className="text-[#9FD3A6] font-bold">{e.cantidad * e.cajasXTarima} cajas</span>)
+          <span className="mono text-sm font-bold text-white bg-[#1A1A1A] px-2 py-0.5 rounded-md">
+            × {e.cajasXTarima} = {e.cantidad * e.cajasXTarima} cajas
           </span>
         )}
         {e.tarimasCompletas != null && e.factor != null && (
-          <span className="mono text-sm font-medium text-[#C9CFC5]">
-            ({e.tarimasCompletas} × {e.factor}{e.restos ? ` + ${e.restos}` : ""})
+          <span className="mono text-sm font-bold text-white bg-[#1A1A1A] px-2 py-0.5 rounded-md">
+            {e.tarimasCompletas} × {e.factor}{e.restos ? ` + ${e.restos}` : ""}
           </span>
         )}
-        {e.ubicacion && <span className="flex items-center gap-1 text-[11px] text-[#8A9389] ml-1"><MapPin size={11} /> {e.ubicacion}</span>}
+        {e.ubicacion && <span className="flex items-center gap-1 text-[11px] ml-1" style={{ color: colorSecundario }}><MapPin size={11} /> {e.ubicacion}</span>}
       </div>
       {e.agrupadorCaducidad ? (
         <div className={`mt-2 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full ${venceProto ? "bg-[#3A2A18] text-[#F2C879]" : "bg-[#1B2119] text-[#8A9389]"}`}>
