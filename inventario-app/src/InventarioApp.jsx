@@ -1249,16 +1249,44 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
   const confirmarBloque = () => {
     if (!hayAlgoQueGuardar) return;
 
-    onAgregar({
-      productoId: info.sku,
-      claveCatalogo: clave,
-      nombre: info.nombre,
-      cantidad: totalPiezasPreview,
-      tarimasCompletas: info.esPieza ? null : tarimasFinal,
-      restos: info.esPieza || omitirRestos ? null : restosFinal,
-      factor: info.esPieza ? null : factorElegido,
-      estado,
-    });
+    if (info.esPieza) {
+      // Sin tarima/resto que desglosar — un solo registro, igual que antes.
+      onAgregar({
+        productoId: info.sku,
+        claveCatalogo: clave,
+        nombre: info.nombre,
+        cantidad: totalPiezasPreview,
+        tarimasCompletas: null,
+        restos: null,
+        factor: null,
+        estado,
+      });
+    } else {
+      // Un registro POR CADA tarima y POR CADA resto en cola — así, en el
+      // detalle de "Capturas" del reporte final, se ve bloque por bloque /
+      // resto por resto (por si olvidas capturar uno, se nota de inmediato
+      // que falta un renglón), en vez de un solo total combinado que
+      // esconde cuántas veces se capturó y qué cantidad trajo cada vez.
+      const valorPendienteTarima = Number(tarimaActual) || 0;
+      const listaTarimas = valorPendienteTarima > 0 ? [...estibas, valorPendienteTarima] : estibas;
+      const valorPendienteResto = omitirRestos ? 0 : (Number(restoActual) || 0);
+      const listaRestos = valorPendienteResto > 0 ? [...restosLista, valorPendienteResto] : restosLista;
+
+      listaTarimas.forEach((valor) => {
+        onAgregar({
+          productoId: info.sku, claveCatalogo: clave, nombre: info.nombre,
+          cantidad: valor * (factorElegido || 0), tarimasCompletas: valor, restos: null,
+          factor: factorElegido, estado,
+        });
+      });
+      listaRestos.forEach((valor) => {
+        onAgregar({
+          productoId: info.sku, claveCatalogo: clave, nombre: info.nombre,
+          cantidad: valor, tarimasCompletas: null, restos: valor,
+          factor: factorElegido, estado,
+        });
+      });
+    }
 
     listaImplicitos.forEach((imp) => {
       const cantImp = imp.esSimple ? totalPiezasPreview : tarimasFinal * imp.porTarima;
