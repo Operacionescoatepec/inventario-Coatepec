@@ -179,6 +179,7 @@ async function cargarCatalogoDesdeSupabase() {
 const UBICACIONES_DEMO = [
   "Línea 2", "Línea 3", "Línea 4", "Línea 5",
   "Racks Push Back", "Nave 1", "Nave 2", "Nave 3", "Nave 3 A", "Nave 3 B", "Nave 3 C",
+  "Retenciones",
   "Otros",
 ];
 
@@ -746,11 +747,12 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
       <div className="relative">
         <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
         <select
-          value={ubicacion}
+          value={ubicacion ?? ""}
           onChange={(e) => setUbicacion(e.target.value)}
           style={{ color: "#EDEAE2" }}
           className="w-full bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A] appearance-none"
         >
+          {!ubicacion && <option value="" disabled>Selecciona tu zona…</option>}
           {UBICACIONES_DEMO.map((u) => (
             <option key={u} value={u}>{u}</option>
           ))}
@@ -2030,7 +2032,7 @@ export default function InventarioApp() {
   const [inputManual, setInputManual] = useState("");
   const [pendiente, setPendiente] = useState(null);
   const [mostrarSync, setMostrarSync] = useState(false);
-  const [ubicacionSesion, setUbicacionSesion] = useState(() => sesionRecuperada?.ubicacionSesion ?? UBICACIONES_DEMO[0]);
+  const [ubicacionSesion, setUbicacionSesion] = useState(() => sesionRecuperada?.ubicacionSesion ?? null);
   const [mostrarUbicacionSesion, setMostrarUbicacionSesion] = useState(false);
   const [ubicacionSesionLibre, setUbicacionSesionLibre] = useState(() => sesionRecuperada?.ubicacionSesionLibre ?? "");
   const [sincronizado, setSincronizado] = useState(null); // { numEmpleado, nombre }
@@ -2060,6 +2062,8 @@ export default function InventarioApp() {
     setSubmodoPT(null);
     setFamiliaId(null);
     setSesionId(null);
+    setUbicacionSesion(null);
+    setUbicacionSesionLibre("");
   };
 
   const elegirModulo = (m) => {
@@ -2475,14 +2479,21 @@ export default function InventarioApp() {
         />
       )}
 
-      {mostrarUbicacionSesion && (
+      {(mostrarUbicacionSesion || !ubicacionSesion) && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="bg-[#161D14] border border-[#2A332C] rounded-t-2xl sm:rounded-2xl w-full max-w-md p-5 space-y-4">
             <div className="flex items-start justify-between">
-              <div className="text-[11px] text-[#8A9389] tracking-wide">UBICACIÓN DE LA SESIÓN</div>
-              <button onClick={() => setMostrarUbicacionSesion(false)} className="text-[#6E776A] hover:text-[#EDEAE2]">
-                <X size={20} />
-              </button>
+              <div>
+                <div className="text-[11px] text-[#8A9389] tracking-wide">UBICACIÓN DE LA SESIÓN</div>
+                {!ubicacionSesion && (
+                  <div className="text-[11px] text-[#F2C879] mt-1">Elige tu zona antes de empezar a contar — es obligatorio.</div>
+                )}
+              </div>
+              {ubicacionSesion && (
+                <button onClick={() => setMostrarUbicacionSesion(false)} className="text-[#6E776A] hover:text-[#EDEAE2]">
+                  <X size={20} />
+                </button>
+              )}
             </div>
             <SelectorUbicacion
               ubicacion={ubicacionSesion}
@@ -2492,7 +2503,7 @@ export default function InventarioApp() {
             />
             <button
               onClick={() => setMostrarUbicacionSesion(false)}
-              disabled={ubicacionSesion === "Otros" && !ubicacionSesionLibre.trim()}
+              disabled={!ubicacionSesion || (ubicacionSesion === "Otros" && !ubicacionSesionLibre.trim())}
               className="w-full bg-[#E2231A] text-white font-bold py-3.5 rounded-xl disabled:opacity-40"
             >
               Confirmar
