@@ -856,7 +856,7 @@ function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus }) {
   );
 }
 
-function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
+function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicacionSesion, ubicacionSesionLibre }) {
   const [cantidad, setCantidad] = useState("39");
   const [unidad, setUnidad] = useState("tarimas");
   // El código de barras NUNCA trae el SKU (solo Orden + Robot) — si no vino
@@ -871,8 +871,8 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
   const [cajasPorTarimaManual, setCajasPorTarimaManual] = useState(
     etiqueta.cajasXPalet ? String(etiqueta.cajasXPalet) : ""
   );
-  const [ubicacion, setUbicacion] = useState(UBICACIONES_DEMO[0]);
-  const [ubicacionLibre, setUbicacionLibre] = useState("");
+  const [ubicacion, setUbicacion] = useState(ubicacionSesion || UBICACIONES_DEMO[0]);
+  const [ubicacionLibre, setUbicacionLibre] = useState(ubicacionSesionLibre || "");
   // El código de barras tampoco trae la fecha de máxima frescura (solo el
   // OCR de esa franja del banner la puede leer, y "Con etiqueta" no usa
   // OCR) — si no vino ya resuelta, se captura aquí mismo, igual que en la
@@ -1044,13 +1044,15 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar }) {
 // FORMULARIO MANUAL — Producto Terminado
 // submodo "tpm": pide fecha (lote) | submodo "sin_fechas": no pide fecha
 // ===========================================================================
-function FormularioPTManual({ submodo, catalogoPT, onAgregar }) {
+function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre }) {
   const [material, setMaterial] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [unidad, setUnidad] = useState("tarimas");
   const [cajasPorTarimaManual, setCajasPorTarimaManual] = useState("");
-  const [ubicacion, setUbicacion] = useState(UBICACIONES_DEMO[0]);
-  const [ubicacionLibre, setUbicacionLibre] = useState("");
+  // Hereda la zona ya confirmada en el popup obligatorio de sesión — no se
+  // vuelve a pedir aquí, solo se puede ajustar si de verdad hace falta.
+  const [ubicacion, setUbicacion] = useState(ubicacionSesion || UBICACIONES_DEMO[0]);
+  const [ubicacionLibre, setUbicacionLibre] = useState(ubicacionSesionLibre || "");
   const [fecha, setFecha] = useState(hoyISO());
   const [error, setError] = useState(null);
 
@@ -2419,7 +2421,13 @@ export default function InventarioApp() {
                 )}
               </>
             ) : (
-              <FormularioPTManual submodo={submodoPT} catalogoPT={catalogoPT} onAgregar={agregarManualPT} />
+              <FormularioPTManual
+                submodo={submodoPT}
+                catalogoPT={catalogoPT}
+                onAgregar={agregarManualPT}
+                ubicacionSesion={ubicacionSesion}
+                ubicacionSesionLibre={ubicacionSesionLibre}
+              />
             )}
           </div>
         )}
@@ -2476,6 +2484,8 @@ export default function InventarioApp() {
           catalogoPT={catalogoPT}
           onCancelar={() => setPendiente(null)}
           onConfirmar={(datos) => { confirmarYAgregar(pendiente, datos); setPendiente(null); }}
+          ubicacionSesion={ubicacionSesion}
+          ubicacionSesionLibre={ubicacionSesionLibre}
         />
       )}
 
