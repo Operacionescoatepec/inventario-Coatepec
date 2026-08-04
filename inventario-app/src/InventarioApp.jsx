@@ -1089,6 +1089,8 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
         <span className="text-sm font-bold" style={{ color: "#E2231A" }}>Captura sin etiqueta</span>
       </div>
 
+      <SelectorUbicacion ubicacion={ubicacion} setUbicacion={setUbicacion} ubicacionLibre={ubicacionLibre} setUbicacionLibre={setUbicacionLibre} />
+
       <div>
         <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">MATERIAL (SKU)</label>
         <BuscadorSKU catalogoPT={catalogoPT} valor={material} onSeleccionar={setMaterial} />
@@ -1144,8 +1146,6 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
           )}
         </div>
       )}
-
-      <SelectorUbicacion ubicacion={ubicacion} setUbicacion={setUbicacion} ubicacionLibre={ubicacionLibre} setUbicacionLibre={setUbicacionLibre} />
 
       {submodo === "tpm" && (
         <div>
