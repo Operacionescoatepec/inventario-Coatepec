@@ -551,7 +551,7 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
     <div className="min-h-screen bg-[#0E1410] flex flex-col">
       <BarraSuperiorSimple titulo="Producto Terminado" onVolver={onVolver} />
       <div className="flex-1 flex flex-col justify-center px-5 space-y-3 max-w-md mx-auto w-full">
-        <img src={logoCocaCola} alt="Coca-Cola" className="h-10 mx-auto mb-2 object-contain" />
+        <img src={logoCocaCola} alt="Coca-Cola" className="h-40 mx-auto mb-3 object-contain" />
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿CON QUÉ MODALIDAD?</div>
         <button
           onClick={() => onElegir("tpm")}
@@ -590,7 +590,7 @@ function PantallaFamilia({ onElegir, onVolver }) {
     <div className="min-h-screen bg-[#0E1410] flex flex-col">
       <BarraSuperiorSimple titulo="Materiales Retornables" onVolver={onVolver} />
       <div className="px-5 pt-2 max-w-md mx-auto w-full">
-        <img src={logoCocaCola} alt="Coca-Cola" className="h-9 mx-auto mb-3 object-contain" />
+        <img src={logoCocaCola} alt="Coca-Cola" className="h-32 mx-auto mb-3 object-contain" />
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-3">SELECCIONA LA FAMILIA</div>
         <div className="space-y-2.5">
           {FAMILIAS_RETORNABLES.map((f) => (
