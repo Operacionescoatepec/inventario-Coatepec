@@ -8,6 +8,15 @@ import {
 import { createClient } from "@supabase/supabase-js";
 import fondoInicio from "./assets/fondo-inicio.png";
 import logoCocaCola from "./assets/logo-cocacola.png";
+import gifProductoTerminado from "./assets/animados/animado_producto_terminado.gif";
+import gifMaterialesRetornables from "./assets/animados/animado_materiales_retornables.gif";
+import gifTpmFechas from "./assets/animados/animado_tpm_fechas.gif";
+import gifSinFechas from "./assets/animados/animado_sin_fechas.gif";
+import gifRefPet from "./assets/animados/animado_familia_ref_pet.gif";
+import gifVidrio from "./assets/animados/animado_familia_vidrio.gif";
+import gifGarrafon from "./assets/animados/animado_familia_garrafon.gif";
+import gifTarimas from "./assets/animados/animado_familia_tarimas.gif";
+import gifEmbalaje from "./assets/animados/animado_familia_embalaje.gif";
 import {
   BrowserMultiFormatReader, NotFoundException, DecodeHintType, BarcodeFormat,
 } from "@zxing/library";
@@ -116,11 +125,11 @@ async function buscarUsuarioPorNumero(numeroEmpleado) {
 // tener que tocar la lógica de implícitos/factores que ya funciona.
 // ===========================================================================
 const FAMILIAS_RETORNABLES = [
-  { id: "ref_pet", nombre: "Ref PET", icon: Container },
-  { id: "vidrio", nombre: "Vidrio", icon: GlassWater },
-  { id: "garrafon", nombre: "Garrafón", icon: ShoppingBag },
-  { id: "tarimas", nombre: "Tarimas", icon: Layers },
-  { id: "embalaje", nombre: "Embalaje", icon: Box },
+  { id: "ref_pet", nombre: "Ref PET", icon: Container, gif: gifRefPet },
+  { id: "vidrio", nombre: "Vidrio", icon: GlassWater, gif: gifVidrio },
+  { id: "garrafon", nombre: "Garrafón", icon: ShoppingBag, gif: gifGarrafon },
+  { id: "tarimas", nombre: "Tarimas", icon: Layers, gif: gifTarimas },
+  { id: "embalaje", nombre: "Embalaje", icon: Box, gif: gifEmbalaje },
 ];
 
 // Filas del catálogo que aún no tienen familia asignada en Supabase (los 294
@@ -502,8 +511,8 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
           onClick={() => onElegirModulo("producto_terminado")}
           className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
-            <Package size={24} className="text-[#E2231A]" />
+          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
+            <img src={gifProductoTerminado} alt="Producto Terminado" className="w-10 h-10 object-contain" />
           </div>
           <div className="flex-1">
             <div className="text-[#1A1A1A] font-bold text-base">Producto Terminado</div>
@@ -516,8 +525,8 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
           onClick={() => onElegirModulo("retornable")}
           className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
-            <Layers size={24} className="text-[#E2231A]" />
+          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
+            <img src={gifMaterialesRetornables} alt="Materiales Retornables" className="w-10 h-10 object-contain" />
           </div>
           <div className="flex-1">
             <div className="text-[#1A1A1A] font-bold text-base">Materiales Retornables</div>
@@ -558,7 +567,7 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
           className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
-            <Calendar size={18} className="text-[#E2231A]" />
+            <img src={gifTpmFechas} alt="" className="w-6 h-6 object-contain" />
             <span className="text-[#1A1A1A] font-bold">TPM (con fechas)</span>
           </div>
           <p className="text-[#4A4A4A] text-xs leading-relaxed">
@@ -570,7 +579,7 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
           className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
-            <ClipboardList size={18} className="text-[#E2231A]" />
+            <img src={gifSinFechas} alt="" className="w-6 h-6 object-contain" />
             <span className="text-[#1A1A1A] font-bold">Sin fechas (físico vs. teórico)</span>
           </div>
           <p className="text-[#4A4A4A] text-xs leading-relaxed">
@@ -599,8 +608,8 @@ function PantallaFamilia({ onElegir, onVolver }) {
               onClick={() => onElegir(f.id)}
               className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
             >
-              <div className="w-11 h-11 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
-                <f.icon size={22} className="text-[#E2231A]" />
+              <div className="w-11 h-11 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
+                <img src={f.gif} alt={f.nombre} className="w-9 h-9 object-contain" />
               </div>
               <div className="flex-1 text-[#1A1A1A] font-bold">{f.nombre}</div>
               <ChevronRight size={20} className="text-[#8A8A8A]" />
