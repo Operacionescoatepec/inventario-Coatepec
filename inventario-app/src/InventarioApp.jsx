@@ -553,25 +553,25 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿CON QUÉ MODALIDAD?</div>
         <button
           onClick={() => onElegir("tpm")}
-          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
             <Calendar size={18} className="text-[#E2231A]" />
-            <span className="text-[#EDEAE2] font-bold">TPM (con fechas)</span>
+            <span className="text-[#1A1A1A] font-bold">TPM (con fechas)</span>
           </div>
-          <p className="text-[#8A9389] text-xs leading-relaxed">
+          <p className="text-[#4A4A4A] text-xs leading-relaxed">
             Conteo por lote y fecha de máxima frescura. Un SKU puede tener varios lotes; la suma de todos debe coincidir con el stock total.
           </p>
         </button>
         <button
           onClick={() => onElegir("sin_fechas")}
-          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
             <ClipboardList size={18} className="text-[#E2231A]" />
-            <span className="text-[#EDEAE2] font-bold">Sin fechas (físico vs. teórico)</span>
+            <span className="text-[#1A1A1A] font-bold">Sin fechas (físico vs. teórico)</span>
           </div>
-          <p className="text-[#8A9389] text-xs leading-relaxed">
+          <p className="text-[#4A4A4A] text-xs leading-relaxed">
             Conteo simple por SKU, comparado directo contra el stock teórico de SAP. No se desglosa por lote.
           </p>
         </button>
@@ -594,13 +594,13 @@ function PantallaFamilia({ onElegir, onVolver }) {
             <button
               key={f.id}
               onClick={() => onElegir(f.id)}
-              className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
             >
               <div className="w-11 h-11 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
                 <f.icon size={22} className="text-[#E2231A]" />
               </div>
-              <div className="flex-1 text-[#EDEAE2] font-bold">{f.nombre}</div>
-              <ChevronRight size={20} className="text-[#6E776A]" />
+              <div className="flex-1 text-[#1A1A1A] font-bold">{f.nombre}</div>
+              <ChevronRight size={20} className="text-[#8A8A8A]" />
             </button>
           ))}
         </div>
@@ -740,17 +740,17 @@ function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizan
 // ===========================================================================
 // SELECTOR DE UBICACIÓN reutilizable (con "Otros" → campo libre)
 // ===========================================================================
-function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicacionLibre }) {
+function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicacionLibre, claro }) {
   return (
     <div>
-      <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">UBICACIÓN</label>
+      <label className={`text-[11px] tracking-wide block mb-1.5 ${claro ? "text-[#4A4A4A]" : "text-[#8A9389]"}`}>UBICACIÓN</label>
       <div className="relative">
-        <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+        <MapPin size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E776A]"}`} />
         <select
           value={ubicacion ?? ""}
           onChange={(e) => setUbicacion(e.target.value)}
-          style={{ color: "#EDEAE2" }}
-          className="w-full bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A] appearance-none"
+          style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}
+          className={`w-full rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A] appearance-none ${claro ? "bg-white border-2 border-[#1A1A1A]" : "bg-[#1B2119] border border-[#2A332C]"}`}
         >
           {!ubicacion && <option value="" disabled>Selecciona tu zona…</option>}
           {UBICACIONES_DEMO.map((u) => (
@@ -763,7 +763,8 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
           value={ubicacionLibre}
           onChange={(e) => setUbicacionLibre(e.target.value)}
           placeholder="Especifica la ubicación"
-          className="w-full mt-2 bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-2.5 text-sm placeholder:text-[#4A524A] focus:outline-none focus:border-[#E2231A]"
+          style={{ color: claro ? "#1A1A1A" : undefined }}
+          className={`w-full mt-2 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#1B2119] border border-[#2A332C] placeholder:text-[#4A524A]"}`}
         />
       )}
     </div>
@@ -778,7 +779,7 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
 // evitar el error de dedo de escribir el SKU a mano. Se elige de una lista
 // ya validada contra el catálogo en vez de tipear dígitos sueltos.
 // ===========================================================================
-function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus }) {
+function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus, claro }) {
   const [texto, setTexto] = useState(valor || "");
   const [abierto, setAbierto] = useState(false);
   const contenedorRef = useRef(null);
@@ -819,7 +820,7 @@ function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus }) {
   return (
     <div ref={contenedorRef} className="relative">
       <div className="relative">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+        <Search size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E776A]"}`} />
         <input
           type="text"
           inputMode="numeric"
@@ -828,27 +829,27 @@ function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus }) {
           onFocus={() => setAbierto(true)}
           placeholder="SKU o nombre del producto…"
           autoFocus={autoFocus}
-          style={{ color: "#EDEAE2" }}
-          className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
+          style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}
+          className={`w-full mono rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:font-normal focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#1B2119] border border-[#2A332C] placeholder:text-[#4A524A]"}`}
         />
       </div>
       {abierto && resultados.length > 0 && (
-        <div className="absolute z-30 left-0 right-0 mt-1 bg-[#161D14] border border-[#2A332C] rounded-lg overflow-hidden shadow-lg max-h-64 overflow-y-auto">
+        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg overflow-hidden shadow-lg max-h-64 overflow-y-auto ${claro ? "bg-white border border-[#C4C4C4]" : "bg-[#161D14] border border-[#2A332C]"}`}>
           {resultados.map((r) => (
             <button
               key={r.sku}
               type="button"
               onClick={() => seleccionar(r)}
-              className="w-full text-left px-3 py-2.5 hover:bg-[#1B2119] active:bg-[#232B20] border-b border-[#2A332C] last:border-b-0"
+              className={`w-full text-left px-3 py-2.5 border-b last:border-b-0 ${claro ? "hover:bg-[#F0F0F0] active:bg-[#E8E8E8] border-[#D8D8D8]" : "hover:bg-[#1B2119] active:bg-[#232B20] border-[#2A332C]"}`}
             >
-              <div className="mono text-sm font-bold" style={{ color: "#EDEAE2" }}>{r.sku}</div>
-              <div className="text-[11px] truncate" style={{ color: "#8A9389" }}>{r.nombre}</div>
+              <div className="mono text-sm font-bold" style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}>{r.sku}</div>
+              <div className="text-[11px] truncate" style={{ color: claro ? "#4A4A4A" : "#8A9389" }}>{r.nombre}</div>
             </button>
           ))}
         </div>
       )}
       {abierto && texto.trim() && resultados.length === 0 && (
-        <div className="absolute z-30 left-0 right-0 mt-1 bg-[#161D14] border border-[#2A332C] rounded-lg px-3 py-2.5 text-[11px]" style={{ color: "#F2C879" }}>
+        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg px-3 py-2.5 text-[11px] ${claro ? "bg-white border border-[#C4C4C4]" : "bg-[#161D14] border border-[#2A332C]"}`} style={{ color: claro ? "#8A6D1A" : "#F2C879" }}>
           Sin coincidencias en el catálogo — verifica el número.
         </div>
       )}
@@ -1083,44 +1084,45 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
   };
 
   return (
-    <div className="bg-[#161D14] border border-[#2A332C] rounded-xl p-4 space-y-4">
+    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-4 space-y-4">
       <div className="flex items-center gap-2 text-[#E2231A]">
         <PenLine size={16} />
         <span className="text-sm font-bold" style={{ color: "#E2231A" }}>Captura sin etiqueta</span>
       </div>
 
-      <SelectorUbicacion ubicacion={ubicacion} setUbicacion={setUbicacion} ubicacionLibre={ubicacionLibre} setUbicacionLibre={setUbicacionLibre} />
+      <SelectorUbicacion ubicacion={ubicacion} setUbicacion={setUbicacion} ubicacionLibre={ubicacionLibre} setUbicacionLibre={setUbicacionLibre} claro />
 
       <div>
-        <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">MATERIAL (SKU)</label>
-        <BuscadorSKU catalogoPT={catalogoPT} valor={material} onSeleccionar={setMaterial} />
-        {nombreSugerido && <div className="text-[11px] text-[#9FD3A6] mt-1.5">✓ {nombreSugerido}</div>}
-        {material.trim() && !nombreSugerido && <div className="text-[11px] text-[#F2C879] mt-1.5">No está en la base de datos — se guardará para revisión</div>}
+        <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">MATERIAL (SKU)</label>
+        <BuscadorSKU catalogoPT={catalogoPT} valor={material} onSeleccionar={setMaterial} claro />
+        {nombreSugerido && <div className="text-[11px] text-[#1F7A3D] mt-1.5">✓ {nombreSugerido}</div>}
+        {material.trim() && !nombreSugerido && <div className="text-[11px] text-[#8A6D1A] mt-1.5">No está en la base de datos — se guardará para revisión</div>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">CANTIDAD</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">CANTIDAD</label>
           <input
             type="number" inputMode="numeric" pattern="[0-9]*" min="1"
             value={cantidad}
             onChange={(e) => setCantidad(e.target.value)}
             placeholder="Ej. 39"
-            className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
+            style={{ color: "#1A1A1A" }}
+            className="w-full mono bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#8A8A8A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">UNIDAD</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">UNIDAD</label>
           <div className="grid grid-cols-2 gap-1.5 h-[46px]">
-            <button onClick={() => setUnidad("tarimas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "tarimas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}>Tarimas</button>
-            <button onClick={() => setUnidad("cajas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "cajas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}>Cajas</button>
+            <button onClick={() => setUnidad("tarimas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "tarimas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}>Tarimas</button>
+            <button onClick={() => setUnidad("cajas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "cajas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}>Cajas</button>
           </div>
         </div>
       </div>
 
       {unidad === "tarimas" && (
         <div>
-          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">CAJAS POR TARIMA</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">CAJAS POR TARIMA</label>
           {cajasXTarimaCatalogo ? (
             <div className="bg-[#15201A] border border-[#2A332C] rounded-lg px-3 py-2.5 flex items-center justify-between">
               <span className="text-[11px] text-[#9FD3A6]">✓ De la base de datos</span>
@@ -1134,13 +1136,14 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
                 onChange={(e) => setCajasPorTarimaManual(e.target.value)}
                 placeholder="Ej. 40"
                 disabled={!material.trim()}
-                className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A] disabled:opacity-40"
+                style={{ color: "#1A1A1A" }}
+                className="w-full mono bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#8A8A8A] placeholder:font-normal focus:outline-none focus:border-[#E2231A] disabled:opacity-40"
               />
-              {material.trim() && <div className="text-[11px] text-[#F2C879] mt-1.5">SKU no encontrado en la base de datos — captúralo manualmente</div>}
+              {material.trim() && <div className="text-[11px] text-[#8A6D1A] mt-1.5">SKU no encontrado en la base de datos — captúralo manualmente</div>}
             </>
           )}
           {totalCajas !== null && (
-            <div className="mt-1.5 text-[11px] text-[#9FD3A6] mono">
+            <div className="mt-1.5 text-[11px] text-[#1F7A3D] mono">
               = {cantidad} × {cajasXTarimaEfectivo} = <span className="font-bold">{totalCajas} cajas</span> en total
             </div>
           )}
@@ -1149,15 +1152,15 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
 
       {submodo === "tpm" && (
         <div>
-          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">FECHA DE MÁXIMA FRESCURA</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">FECHA DE MÁXIMA FRESCURA</label>
           <div className="relative">
-            <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+            <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A4A4A]" />
             <input
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              style={{ color: "#EDEAE2", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
-              className="w-full max-w-full block mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
+              style={{ color: "#1A1A1A", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
+              className="w-full max-w-full block mono bg-white border-2 border-[#1A1A1A] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
             />
           </div>
         </div>
@@ -1505,12 +1508,13 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
       </div>
 
       <div className="relative">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A4A4A]" />
         <input
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
           placeholder="Filtrar por SKU o nombre"
-          className="w-full bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-[#4A524A] focus:outline-none focus:border-[#E2231A]"
+          style={{ color: "#1A1A1A" }}
+          className="w-full bg-white border-2 border-[#1A1A1A] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#E2231A]"
         />
       </div>
 
@@ -2390,12 +2394,12 @@ export default function InventarioApp() {
             {esRetornable && (
               <button
                 onClick={() => setMostrarUbicacionSesion(true)}
-                className="w-full bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-2.5 flex items-center justify-between"
+                className="w-full bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-2.5 flex items-center justify-between"
               >
-                <span className="flex items-center gap-2 text-sm text-[#C9CFC5]">
+                <span className="flex items-center gap-2 text-sm text-[#4A4A4A]">
                   <MapPin size={15} className="text-[#E2231A]" /> Ubicación
                 </span>
-                <span className="text-sm font-bold text-[#EDEAE2]">
+                <span className="text-sm font-bold text-[#1A1A1A]">
                   {ubicacionSesion === "Otros" ? (ubicacionSesionLibre || "Otros") : ubicacionSesion}
                 </span>
               </button>
