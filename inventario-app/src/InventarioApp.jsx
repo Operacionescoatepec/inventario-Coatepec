@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import fondoInicio from "./assets/fondo-inicio.png";
+import logoCocaCola from "./assets/logo-cocacola.jpg";
 import {
   BrowserMultiFormatReader, NotFoundException, DecodeHintType, BarcodeFormat,
 } from "@zxing/library";
@@ -499,30 +500,30 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
 
         <button
           onClick={() => onElegirModulo("producto_terminado")}
-          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
           <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
             <Package size={24} className="text-[#E2231A]" />
           </div>
           <div className="flex-1">
-            <div className="text-[#EDEAE2] font-bold text-base">Producto Terminado</div>
-            <div className="text-[#8A9389] text-xs mt-0.5">TPM con fechas, o físico vs. teórico</div>
+            <div className="text-[#1A1A1A] font-bold text-base">Producto Terminado</div>
+            <div className="text-[#4A4A4A] text-xs mt-0.5">TPM con fechas, o físico vs. teórico</div>
           </div>
-          <ChevronRight size={20} className="text-[#6E776A]" />
+          <ChevronRight size={20} className="text-[#8A8A8A]" />
         </button>
 
         <button
           onClick={() => onElegirModulo("retornable")}
-          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
           <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
             <Layers size={24} className="text-[#E2231A]" />
           </div>
           <div className="flex-1">
-            <div className="text-[#EDEAE2] font-bold text-base">Materiales Retornables</div>
-            <div className="text-[#8A9389] text-xs mt-0.5">Vidrio, Ref PET, Tarimas, Garrafón, Embalaje</div>
+            <div className="text-[#1A1A1A] font-bold text-base">Materiales Retornables</div>
+            <div className="text-[#4A4A4A] text-xs mt-0.5">Vidrio, Ref PET, Tarimas, Garrafón, Embalaje</div>
           </div>
-          <ChevronRight size={20} className="text-[#6E776A]" />
+          <ChevronRight size={20} className="text-[#8A8A8A]" />
         </button>
 
         <button
@@ -550,6 +551,7 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
     <div className="min-h-screen bg-[#0E1410] flex flex-col">
       <BarraSuperiorSimple titulo="Producto Terminado" onVolver={onVolver} />
       <div className="flex-1 flex flex-col justify-center px-5 space-y-3 max-w-md mx-auto w-full">
+        <img src={logoCocaCola} alt="Coca-Cola" className="h-10 mx-auto mb-2 object-contain" />
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿CON QUÉ MODALIDAD?</div>
         <button
           onClick={() => onElegir("tpm")}
@@ -588,6 +590,7 @@ function PantallaFamilia({ onElegir, onVolver }) {
     <div className="min-h-screen bg-[#0E1410] flex flex-col">
       <BarraSuperiorSimple titulo="Materiales Retornables" onVolver={onVolver} />
       <div className="px-5 pt-2 max-w-md mx-auto w-full">
+        <img src={logoCocaCola} alt="Coca-Cola" className="h-9 mx-auto mb-3 object-contain" />
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-3">SELECCIONA LA FAMILIA</div>
         <div className="space-y-2.5">
           {FAMILIAS_RETORNABLES.map((f) => (
