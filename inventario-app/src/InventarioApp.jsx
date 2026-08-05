@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import fondoInicio from "./assets/fondo-inicio.png";
-import logoCocaCola from "./assets/logo-cocacola.jpg";
+import logoCocaCola from "./assets/logo-cocacola.png";
 import {
   BrowserMultiFormatReader, NotFoundException, DecodeHintType, BarcodeFormat,
 } from "@zxing/library";
