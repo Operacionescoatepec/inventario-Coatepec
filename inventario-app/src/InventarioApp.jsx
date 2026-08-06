@@ -1038,9 +1038,12 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
           onClick={() => onConfirmar({
             productoId: skuEfectivo,
             agrupadorCaducidad: fechaEfectiva,
-            cantidad: Number(cantidad) || 1,
+            cantidad: unidad === "tarimas" && cajasXTarimaEfectivo
+              ? (Number(cantidad) || 1) * cajasXTarimaEfectivo
+              : (Number(cantidad) || 1),
             unidad,
             cajasXTarima: unidad === "tarimas" ? cajasXTarimaEfectivo : null,
+            tarimasCapturadas: unidad === "tarimas" ? (Number(cantidad) || 1) : null,
             ubicacion: ubicacion === "Otros" ? (ubicacionLibre.trim() || "Otros") : ubicacion,
           })}
           disabled={!puedeConfirmar}
@@ -1054,9 +1057,210 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
 }
 
 // ===========================================================================
-// FORMULARIO MANUAL — Producto Terminado
-// submodo "tpm": pide fecha (lote) | submodo "sin_fechas": no pide fecha
+// CAPTURA RÁPIDA — Producto Terminado (estilo Excel: SKU → Fecha → Tarimas,
+// con teclado numérico propio en pantalla y "TAB" para saltar de campo;
+// al terminar Tarimas, guarda solo y reinicia en SKU para el siguiente
+// registro — sin botón de confirmar aparte).
 // ===========================================================================
+function formatearFechaParcial(digitos) {
+  const d = digitos.slice(0, 2);
+  const m = digitos.slice(2, 4);
+  const y = digitos.slice(4, 6);
+  const partes = [d];
+  if (digitos.length > 2) partes.push(m);
+  if (digitos.length > 4) partes.push(y);
+  return partes.join("/");
+}
+
+function digitosAFechaISO(digitos) {
+  if (digitos.length !== 6) return null;
+  const d = digitos.slice(0, 2), m = digitos.slice(2, 4), y = digitos.slice(4, 6);
+  const dn = Number(d), mn = Number(m);
+  if (dn < 1 || dn > 31 || mn < 1 || mn > 12) return null;
+  return `20${y}-${m}-${d}`;
+}
+
+function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre }) {
+  const campos = submodo === "tpm" ? ["sku", "fecha", "tarimas"] : ["sku", "tarimas"];
+  const [campoIdx, setCampoIdx] = useState(0);
+  const [sku, setSku] = useState("");
+  const [fechaDigitos, setFechaDigitos] = useState("");
+  const [tarimas, setTarimas] = useState("");
+  const [aviso, setAviso] = useState(null);
+  const [ultimoGuardado, setUltimoGuardado] = useState(null);
+
+  const campoActivo = campos[campoIdx];
+  const skuInfo = catalogoPT[sku.trim()];
+
+  const resultadosSku = useMemo(() => {
+    const q = sku.trim().toLowerCase();
+    if (!q || campoActivo !== "sku") return [];
+    return Object.values(catalogoPT || {})
+      .filter((e) => e.sku.toLowerCase().includes(q) || (e.nombre || "").toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [catalogoPT, sku, campoActivo]);
+
+  const escribirDigito = (d) => {
+    setAviso(null);
+    if (campoActivo === "sku") setSku((s) => s + d);
+    else if (campoActivo === "fecha") setFechaDigitos((s) => (s.length < 6 ? s + d : s));
+    else if (campoActivo === "tarimas") setTarimas((s) => (s + d).slice(0, 6));
+  };
+
+  const borrar = () => {
+    setAviso(null);
+    if (campoActivo === "sku") setSku((s) => s.slice(0, -1));
+    else if (campoActivo === "fecha") setFechaDigitos((s) => s.slice(0, -1));
+    else if (campoActivo === "tarimas") setTarimas((s) => s.slice(0, -1));
+  };
+
+  const guardarYReiniciar = (tarimasVal) => {
+    const cajasXTarima = skuInfo?.cajasXTarima ?? null;
+    const tarimasNum = Number(tarimasVal);
+    const cantidadFinal = cajasXTarima ? tarimasNum * cajasXTarima : tarimasNum;
+    onAgregar({
+      productoId: sku.trim(),
+      cantidad: cantidadFinal,
+      unidad: "tarimas",
+      cajasXTarima,
+      tarimasCapturadas: tarimasNum,
+      ubicacion: ubicacionSesion === "Otros" ? (ubicacionSesionLibre.trim() || "Otros") : ubicacionSesion,
+      agrupadorCaducidad: submodo === "tpm" ? digitosAFechaISO(fechaDigitos) : null,
+      esManual: true,
+    });
+    setUltimoGuardado({
+      sku: sku.trim(), nombre: skuInfo?.nombre || null, tarimas: tarimasVal,
+      fecha: submodo === "tpm" ? formatearFechaParcial(fechaDigitos) : null,
+      sinCatalogar: !cajasXTarima,
+    });
+    setSku(""); setFechaDigitos(""); setTarimas(""); setCampoIdx(0); setAviso(null);
+  };
+
+  const avanzar = () => {
+    if (campoActivo === "sku") {
+      if (!sku.trim()) { setAviso("Captura el SKU"); return; }
+      setCampoIdx((i) => i + 1);
+    } else if (campoActivo === "fecha") {
+      if (fechaDigitos.length !== 6) { setAviso("Captura los 6 dígitos: DDMMAA"); return; }
+      if (!digitosAFechaISO(fechaDigitos)) { setAviso("Fecha inválida"); return; }
+      setCampoIdx((i) => i + 1);
+    } else if (campoActivo === "tarimas") {
+      if (!tarimas || Number(tarimas) <= 0) { setAviso("Captura las tarimas"); return; }
+      guardarYReiniciar(tarimas);
+    }
+  };
+
+  const campoInfo = {
+    sku: { etiqueta: "SKU", valor: sku, placeholder: "Teclea el SKU…" },
+    fecha: { etiqueta: "FECHA (DDMMAA)", valor: formatearFechaParcial(fechaDigitos), placeholder: "Ej. 23/04/26" },
+    tarimas: { etiqueta: "TARIMAS", valor: tarimas, placeholder: "Teclea las tarimas…" },
+  };
+
+  return (
+    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-[#E2231A]">
+          <PenLine size={16} />
+          <span className="text-sm font-bold" style={{ color: "#E2231A" }}>Captura rápida</span>
+        </div>
+        <span className="text-[10px] text-[#4A4A4A]">
+          {ubicacionSesion === "Otros" ? (ubicacionSesionLibre || "Otros") : ubicacionSesion}
+        </span>
+      </div>
+
+      {/* Campos — el activo queda remarcado en rojo */}
+      <div className="space-y-2">
+        {campos.map((c) => {
+          const info = campoInfo[c];
+          const activo = c === campoActivo;
+          return (
+            <div key={c} className="relative">
+              <label className="text-[10px] text-[#4A4A4A] tracking-wide block mb-1">{info.etiqueta}</label>
+              <div
+                className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
+                style={{ color: info.valor ? "#1A1A1A" : "#8A8A8A" }}
+              >
+                {info.valor || info.placeholder}
+              </div>
+              {c === "sku" && activo && skuInfo && (
+                <div className="text-[11px] text-[#1F7A3D] mt-1">✓ {skuInfo.nombre}{skuInfo.cajasXTarima ? ` · ${skuInfo.cajasXTarima} cajas/tarima` : ""}</div>
+              )}
+              {c === "sku" && activo && sku.trim() && !skuInfo && (
+                <div className="text-[11px] text-[#8A6D1A] mt-1">Sin catálogo — se guardará solo el número de tarimas (sin multiplicar)</div>
+              )}
+              {c === "sku" && activo && resultadosSku.length > 0 && (
+                <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#C4C4C4] rounded-lg overflow-hidden shadow-lg">
+                  {resultadosSku.map((r) => (
+                    <button
+                      key={r.sku}
+                      onClick={() => setSku(r.sku)}
+                      className="w-full text-left px-3 py-2 hover:bg-[#F0F0F0] border-b border-[#E0E0E0] last:border-b-0"
+                    >
+                      <span className="mono text-sm font-bold text-[#1A1A1A]">{r.sku}</span>
+                      <span className="text-[11px] text-[#4A4A4A] ml-2">{r.nombre}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {aviso && (
+        <div className="flex items-center gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-2.5 text-[12px] text-white">
+          <AlertTriangle size={14} className="shrink-0" /> {aviso}
+        </div>
+      )}
+
+      {ultimoGuardado && (
+        <div className="flex items-center gap-2 bg-[#EAF5EC] border border-[#9FD3A6] rounded-lg p-2.5 text-[12px] text-[#1F7A3D]">
+          <CheckCircle2 size={14} className="shrink-0" />
+          Guardado: {ultimoGuardado.sku}{ultimoGuardado.nombre ? ` — ${ultimoGuardado.nombre}` : ""} · {ultimoGuardado.tarimas} tarimas
+          {ultimoGuardado.fecha ? ` · ${ultimoGuardado.fecha}` : ""}
+          {ultimoGuardado.sinCatalogar ? " · SIN CATÁLOGO" : ""}
+        </div>
+      )}
+
+      {/* Teclado propio: TAB grande a la izquierda, numérico a la derecha */}
+      <div className="grid grid-cols-[auto_1fr] gap-2 pt-1">
+        <button
+          onClick={avanzar}
+          className="w-20 rounded-xl bg-[#1A1A1A] text-white font-bold text-sm flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform"
+        >
+          <span className="text-2xl leading-none">⇥</span>
+          <span>TAB</span>
+        </button>
+        <div className="grid grid-cols-3 gap-2">
+          {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
+            <button
+              key={d}
+              onClick={() => escribirDigito(d)}
+              className="py-3 rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] text-xl font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform"
+            >
+              {d}
+            </button>
+          ))}
+          <button
+            onClick={borrar}
+            className="py-3 rounded-xl bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] flex items-center justify-center active:bg-[#E0E0E0] active:scale-[0.97] transition-transform"
+          >
+            <XCircle size={20} />
+          </button>
+          <button
+            onClick={() => escribirDigito("0")}
+            className="py-3 rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] text-xl font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform"
+          >
+            0
+          </button>
+          <div />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre }) {
   const [material, setMaterial] = useState("");
   const [cantidad, setCantidad] = useState("");
@@ -1083,11 +1287,18 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
     if (!cantidad || Number(cantidad) <= 0) return setError("Ingresa una cantidad válida.");
     if (unidad === "tarimas" && !cajasXTarimaEfectivo) return setError("Este SKU no está en la base de datos. Ingresa cuántas cajas trae cada tarima.");
     if (ubicacion === "Otros" && !ubicacionLibre.trim()) return setError("Especifica la ubicación.");
+    // OJO: si la unidad es "tarimas", lo que se guarda debe ser el total en
+    // CAJAS (tarimas × armado) — antes se guardaba el número de tarimas tal
+    // cual, sin multiplicar, aunque en pantalla sí se mostraba bien el total.
+    const cantidadFinal = unidad === "tarimas" && cajasXTarimaEfectivo
+      ? Number(cantidad) * cajasXTarimaEfectivo
+      : Number(cantidad);
     onAgregar({
       productoId: material.trim(),
-      cantidad: Number(cantidad),
+      cantidad: cantidadFinal,
       unidad,
       cajasXTarima: unidad === "tarimas" ? cajasXTarimaEfectivo : null,
+      tarimasCapturadas: unidad === "tarimas" ? Number(cantidad) : null,
       ubicacion: ubicacion === "Otros" ? ubicacionLibre.trim() : ubicacion,
       agrupadorCaducidad: submodo === "tpm" ? fecha : null,
       esManual: true,
@@ -2197,7 +2408,7 @@ export default function InventarioApp() {
   const agregarManualPT = (datos) => {
     confirmarYAgregar(
       { productoId: datos.productoId, agrupadorCaducidad: datos.agrupadorCaducidad, linea: "—", cajasXPalet: null, cajasXTarima: datos.cajasXTarima, esManual: true },
-      { cantidad: datos.cantidad, unidad: datos.unidad, ubicacion: datos.ubicacion }
+      { cantidad: datos.cantidad, unidad: datos.unidad, ubicacion: datos.ubicacion, tarimasCapturadas: datos.tarimasCapturadas }
     );
   };
 
@@ -2465,13 +2676,18 @@ export default function InventarioApp() {
                 )}
               </>
             ) : (
-              <FormularioPTManual
-                submodo={submodoPT}
-                catalogoPT={catalogoPT}
-                onAgregar={agregarManualPT}
-                ubicacionSesion={ubicacionSesion}
-                ubicacionSesionLibre={ubicacionSesionLibre}
-              />
+              <>
+                <CapturaRapidaPT
+                  submodo={submodoPT}
+                  catalogoPT={catalogoPT}
+                  onAgregar={agregarManualPT}
+                  ubicacionSesion={ubicacionSesion}
+                  ubicacionSesionLibre={ubicacionSesionLibre}
+                />
+                {/* Formulario anterior (con más campos) oculto por ahora —
+                    se deja el código en FormularioPTManual por si se quiere
+                    retomar. Ver componente definido más arriba. */}
+              </>
             )}
           </div>
         )}
@@ -2680,10 +2896,10 @@ function EscaneoDetalle({ e, compact, catalogo }) {
       </div>
       <div className="flex items-center gap-2 mt-2 flex-wrap">
         <span className="mono text-base font-bold" style={{ color: compact ? "#1F7A3D" : "#9FD3A6" }}>{Math.round(e.cantidad)}</span>
-        <span className="text-xs" style={{ color: colorSecundario }}>{e.unidad === "tarimas" ? "tarimas" : e.unidad === "piezas" ? "piezas" : "cajas"}</span>
-        {e.unidad === "tarimas" && e.cajasXTarima && (
+        <span className="text-xs" style={{ color: colorSecundario }}>{e.unidad === "piezas" ? "piezas" : "cajas"}</span>
+        {e.tarimasCapturadas != null && e.cajasXTarima && (
           <span className="mono text-sm font-bold text-white bg-[#1A1A1A] px-2 py-0.5 rounded-md">
-            × {e.cajasXTarima} = {e.cantidad * e.cajasXTarima} cajas
+            {e.tarimasCapturadas} tarimas × {e.cajasXTarima}
           </span>
         )}
         {e.tarimasCompletas != null && e.factor != null && (
