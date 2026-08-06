@@ -1215,12 +1215,12 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
                 </div>
               )}
               {c === "sku" && activo && skuInfo && (
-                <div className="text-[11px] text-[#1F7A3D] mt-1">✓ {skuInfo.nombre}{skuInfo.cajasXTarima ? ` · ${skuInfo.cajasXTarima} cajas/tarima` : ""}</div>
+                <div className="absolute left-0 right-0 top-full mt-1 text-[11px] text-[#1F7A3D] bg-[#E8E8E8] px-1 z-10">✓ {skuInfo.nombre}{skuInfo.cajasXTarima ? ` · ${skuInfo.cajasXTarima} cajas/tarima` : ""}</div>
               )}
               {c === "sku" && activo && sku.trim() && !skuInfo && (
-                <div className="text-[11px] text-[#8A6D1A] mt-1">Sin catálogo — se guardará solo el número de tarimas (sin multiplicar)</div>
+                <div className="absolute left-0 right-0 top-full mt-1 text-[11px] text-[#8A6D1A] bg-[#E8E8E8] px-1 z-10">Sin catálogo — se guardará solo el número de tarimas (sin multiplicar)</div>
               )}
-              {c === "sku" && activo && resultadosSku.length > 0 && (
+              {c === "sku" && activo && !skuInfo && resultadosSku.length > 0 && (
                 <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#C4C4C4] rounded-lg overflow-hidden shadow-lg">
                   {resultadosSku.map((r) => (
                     <button
