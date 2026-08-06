@@ -3,7 +3,8 @@ import {
   Scan, Package, CheckCircle2, AlertTriangle, XCircle, ClipboardList, Upload,
   Trash2, ChevronRight, ChevronLeft, Camera, PenLine, MapPin, Calendar, Boxes,
   Layers, X, GlassWater, Container, ShoppingBag, Box, UserCircle2, LogOut,
-  CloudUpload, Search, Flashlight,
+  CloudUpload, Search, Flashlight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
+  Keyboard, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import fondoInicio from "./assets/fondo-inicio.png";
@@ -1088,6 +1089,9 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   const [tarimas, setTarimas] = useState("");
   const [aviso, setAviso] = useState(null);
   const [ultimoGuardado, setUltimoGuardado] = useState(null);
+  const [tecladoNativo, setTecladoNativo] = useState(false); // para buscar SKU por nombre (letras)
+  const [ampliado, setAmpliado] = useState(false); // "zoom": teclado más grande y a todo el ancho
+  const inputSkuRef = useRef(null);
 
   const campoActivo = campos[campoIdx];
   const skuInfo = catalogoPT[sku.trim()];
@@ -1150,6 +1154,21 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
     }
   };
 
+  // Retroceder: solo mueve el foco al campo anterior, sin validar ni borrar
+  // nada — para corregir un campo previo sin tener que reiniciar todo.
+  const retroceder = () => {
+    setAviso(null);
+    setCampoIdx((i) => Math.max(0, i - 1));
+  };
+
+  // Activa el teclado nativo del iPad/celular sobre el campo de SKU — para
+  // cuando no se tiene a la vista el número y hace falta buscar por nombre.
+  const activarTecladoNativo = () => {
+    setTecladoNativo(true);
+    if (campoActivo !== "sku") setCampoIdx(0);
+    requestAnimationFrame(() => inputSkuRef.current?.focus());
+  };
+
   const campoInfo = {
     sku: { etiqueta: "SKU", valor: sku, placeholder: "Teclea el SKU…" },
     fecha: { etiqueta: "FECHA (DDMMAA)", valor: formatearFechaParcial(fechaDigitos), placeholder: "Ej. 23/04/26" },
@@ -1173,15 +1192,28 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
         {campos.map((c) => {
           const info = campoInfo[c];
           const activo = c === campoActivo;
+          const esCampoSku = c === "sku";
           return (
             <div key={c} className="relative">
               <label className="text-[10px] text-[#4A4A4A] tracking-wide block mb-1">{info.etiqueta}</label>
-              <div
-                className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
-                style={{ color: info.valor ? "#1A1A1A" : "#8A8A8A" }}
-              >
-                {info.valor || info.placeholder}
-              </div>
+              {esCampoSku && tecladoNativo ? (
+                <input
+                  ref={inputSkuRef}
+                  value={sku}
+                  onChange={(e) => { setAviso(null); setSku(e.target.value); }}
+                  onFocus={() => setCampoIdx(0)}
+                  placeholder={info.placeholder}
+                  style={{ color: "#1A1A1A" }}
+                  className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono bg-white focus:outline-none ${activo ? "border-2 border-[#E2231A]" : "border border-[#C4C4C4]"}`}
+                />
+              ) : (
+                <div
+                  className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
+                  style={{ color: info.valor ? "#1A1A1A" : "#8A8A8A" }}
+                >
+                  {info.valor || info.placeholder}
+                </div>
+              )}
               {c === "sku" && activo && skuInfo && (
                 <div className="text-[11px] text-[#1F7A3D] mt-1">✓ {skuInfo.nombre}{skuInfo.cajasXTarima ? ` · ${skuInfo.cajasXTarima} cajas/tarima` : ""}</div>
               )}
@@ -1193,7 +1225,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
                   {resultadosSku.map((r) => (
                     <button
                       key={r.sku}
-                      onClick={() => setSku(r.sku)}
+                      onClick={() => { setSku(r.sku); setTecladoNativo(false); }}
                       className="w-full text-left px-3 py-2 hover:bg-[#F0F0F0] border-b border-[#E0E0E0] last:border-b-0"
                     >
                       <span className="mono text-sm font-bold text-[#1A1A1A]">{r.sku}</span>
@@ -1222,38 +1254,90 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
         </div>
       )}
 
-      {/* Teclado propio: TAB grande a la izquierda, numérico a la derecha */}
-      <div className="grid grid-cols-[auto_1fr] gap-2 pt-1">
+      {/* Barra de utilidades: teclado nativo (buscar por nombre) + zoom */}
+      <div className="flex items-center gap-2">
         <button
-          onClick={avanzar}
-          className="w-20 rounded-xl bg-[#1A1A1A] text-white font-bold text-sm flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform"
+          onClick={() => tecladoNativo ? (setTecladoNativo(false), inputSkuRef.current?.blur()) : activarTecladoNativo()}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-xs font-medium ${tecladoNativo ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}
         >
-          <span className="text-2xl leading-none">⇥</span>
-          <span>TAB</span>
+          <Keyboard size={14} /> {tecladoNativo ? "Usando teclado del dispositivo" : "Buscar SKU por nombre (teclado normal)"}
         </button>
-        <div className="grid grid-cols-3 gap-2">
-          {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
+        <button
+          onClick={() => setAmpliado((v) => !v)}
+          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border text-xs font-medium ${ampliado ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}
+        >
+          {ampliado ? <ZoomOut size={14} /> : <ZoomIn size={14} />}
+        </button>
+      </div>
+
+      {/* Teclado propio: TAB, flechas de navegación, y numérico.
+          En modo "ampliado" se estira a todo el ancho del dispositivo (útil
+          en iPad, donde el iPad 10a gen deja el teclado muy al centro y no
+          alcanzan los pulgares sosteniéndolo por los bordes). */}
+      <div className={ampliado ? "relative left-1/2 right-1/2 -mx-[50vw] w-screen px-3" : ""}>
+        <div className={`grid gap-2 pt-1 ${ampliado ? "grid-cols-[auto_auto_1fr] max-w-3xl mx-auto" : "grid-cols-[auto_1fr]"}`}>
+          <button
+            onClick={avanzar}
+            className={`rounded-xl bg-[#1A1A1A] text-white font-bold flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform ${ampliado ? "w-28 text-base" : "w-20 text-sm"}`}
+          >
+            <span className={ampliado ? "text-3xl leading-none" : "text-2xl leading-none"}>⇥</span>
+            <span>TAB</span>
+          </button>
+
+          {/* Flechas de navegación entre campos */}
+          <div className={`grid grid-rows-[auto_auto] gap-2 ${ampliado ? "w-40" : "w-28"}`}>
             <button
-              key={d}
-              onClick={() => escribirDigito(d)}
-              className="py-3 rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] text-xl font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform"
+              onClick={retroceder}
+              className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
             >
-              {d}
+              <ArrowUp size={ampliado ? 24 : 18} />
             </button>
-          ))}
-          <button
-            onClick={borrar}
-            className="py-3 rounded-xl bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] flex items-center justify-center active:bg-[#E0E0E0] active:scale-[0.97] transition-transform"
-          >
-            <XCircle size={20} />
-          </button>
-          <button
-            onClick={() => escribirDigito("0")}
-            className="py-3 rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] text-xl font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform"
-          >
-            0
-          </button>
-          <div />
+            <div className={`grid grid-cols-2 gap-2`}>
+              <button
+                onClick={borrar}
+                className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
+              >
+                <ArrowLeft size={ampliado ? 24 : 18} />
+              </button>
+              <button
+                onClick={avanzar}
+                className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
+              >
+                <ArrowRight size={ampliado ? 24 : 18} />
+              </button>
+            </div>
+            <button
+              onClick={avanzar}
+              className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
+            >
+              <ArrowDown size={ampliado ? 24 : 18} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
+              <button
+                key={d}
+                onClick={() => escribirDigito(d)}
+                className={`rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform ${ampliado ? "py-5 text-2xl" : "py-3 text-xl"}`}
+              >
+                {d}
+              </button>
+            ))}
+            <button
+              onClick={borrar}
+              className={`rounded-xl bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] flex items-center justify-center active:bg-[#E0E0E0] active:scale-[0.97] transition-transform ${ampliado ? "py-5" : "py-3"}`}
+            >
+              <XCircle size={ampliado ? 26 : 20} />
+            </button>
+            <button
+              onClick={() => escribirDigito("0")}
+              className={`rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform ${ampliado ? "py-5 text-2xl" : "py-3 text-xl"}`}
+            >
+              0
+            </button>
+            <div />
+          </div>
         </div>
       </div>
     </div>
