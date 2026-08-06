@@ -3,21 +3,10 @@ import {
   Scan, Package, CheckCircle2, AlertTriangle, XCircle, ClipboardList, Upload,
   Trash2, ChevronRight, ChevronLeft, Camera, PenLine, MapPin, Calendar, Boxes,
   Layers, X, GlassWater, Container, ShoppingBag, Box, UserCircle2, LogOut,
-  CloudUpload, Search, Flashlight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
-  Keyboard, ZoomIn, ZoomOut,
+  CloudUpload, Search, Flashlight,
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import fondoInicio from "./assets/fondo-inicio.png";
-import logoCocaCola from "./assets/logo-cocacola.png";
-import gifProductoTerminado from "./assets/animados/animado_producto_terminado.gif";
-import gifMaterialesRetornables from "./assets/animados/animado_materiales_retornables.gif";
-import gifTpmFechas from "./assets/animados/animado_tpm_fechas.gif";
-import gifSinFechas from "./assets/animados/animado_sin_fechas.gif";
-import gifRefPet from "./assets/animados/animado_familia_ref_pet.gif";
-import gifVidrio from "./assets/animados/animado_familia_vidrio.gif";
-import gifGarrafon from "./assets/animados/animado_familia_garrafon.gif";
-import gifTarimas from "./assets/animados/animado_familia_tarimas.gif";
-import gifEmbalaje from "./assets/animados/animado_familia_embalaje.gif";
 import {
   BrowserMultiFormatReader, NotFoundException, DecodeHintType, BarcodeFormat,
 } from "@zxing/library";
@@ -126,11 +115,11 @@ async function buscarUsuarioPorNumero(numeroEmpleado) {
 // tener que tocar la lógica de implícitos/factores que ya funciona.
 // ===========================================================================
 const FAMILIAS_RETORNABLES = [
-  { id: "ref_pet", nombre: "Ref PET", icon: Container, gif: gifRefPet },
-  { id: "vidrio", nombre: "Vidrio", icon: GlassWater, gif: gifVidrio },
-  { id: "garrafon", nombre: "Garrafón", icon: ShoppingBag, gif: gifGarrafon },
-  { id: "tarimas", nombre: "Tarimas", icon: Layers, gif: gifTarimas },
-  { id: "embalaje", nombre: "Embalaje", icon: Box, gif: gifEmbalaje },
+  { id: "ref_pet", nombre: "Ref PET", icon: Container },
+  { id: "vidrio", nombre: "Vidrio", icon: GlassWater },
+  { id: "garrafon", nombre: "Garrafón", icon: ShoppingBag },
+  { id: "tarimas", nombre: "Tarimas", icon: Layers },
+  { id: "embalaje", nombre: "Embalaje", icon: Box },
 ];
 
 // Filas del catálogo que aún no tienen familia asignada en Supabase (los 294
@@ -510,30 +499,30 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
 
         <button
           onClick={() => onElegirModulo("producto_terminado")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
-            <img src={gifProductoTerminado} alt="Producto Terminado" className="w-10 h-10 object-contain" />
+          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
+            <Package size={24} className="text-[#E2231A]" />
           </div>
           <div className="flex-1">
-            <div className="text-[#1A1A1A] font-bold text-base">Producto Terminado</div>
-            <div className="text-[#4A4A4A] text-xs mt-0.5">TPM con fechas, o físico vs. teórico</div>
+            <div className="text-[#EDEAE2] font-bold text-base">Producto Terminado</div>
+            <div className="text-[#8A9389] text-xs mt-0.5">TPM con fechas, o físico vs. teórico</div>
           </div>
-          <ChevronRight size={20} className="text-[#8A8A8A]" />
+          <ChevronRight size={20} className="text-[#6E776A]" />
         </button>
 
         <button
           onClick={() => onElegirModulo("retornable")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
-            <img src={gifMaterialesRetornables} alt="Materiales Retornables" className="w-10 h-10 object-contain" />
+          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
+            <Layers size={24} className="text-[#E2231A]" />
           </div>
           <div className="flex-1">
-            <div className="text-[#1A1A1A] font-bold text-base">Materiales Retornables</div>
-            <div className="text-[#4A4A4A] text-xs mt-0.5">Vidrio, Ref PET, Tarimas, Garrafón, Embalaje</div>
+            <div className="text-[#EDEAE2] font-bold text-base">Materiales Retornables</div>
+            <div className="text-[#8A9389] text-xs mt-0.5">Vidrio, Ref PET, Tarimas, Garrafón, Embalaje</div>
           </div>
-          <ChevronRight size={20} className="text-[#8A8A8A]" />
+          <ChevronRight size={20} className="text-[#6E776A]" />
         </button>
 
         <button
@@ -561,29 +550,28 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
     <div className="min-h-screen bg-[#0E1410] flex flex-col">
       <BarraSuperiorSimple titulo="Producto Terminado" onVolver={onVolver} />
       <div className="flex-1 flex flex-col justify-center px-5 space-y-3 max-w-md mx-auto w-full">
-        <img src={logoCocaCola} alt="Coca-Cola" className="h-40 mx-auto mb-3 object-contain" />
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿CON QUÉ MODALIDAD?</div>
         <button
           onClick={() => onElegir("tpm")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
-            <img src={gifTpmFechas} alt="" className="w-6 h-6 object-contain" />
-            <span className="text-[#1A1A1A] font-bold">TPM (con fechas)</span>
+            <Calendar size={18} className="text-[#E2231A]" />
+            <span className="text-[#EDEAE2] font-bold">TPM (con fechas)</span>
           </div>
-          <p className="text-[#4A4A4A] text-xs leading-relaxed">
+          <p className="text-[#8A9389] text-xs leading-relaxed">
             Conteo por lote y fecha de máxima frescura. Un SKU puede tener varios lotes; la suma de todos debe coincidir con el stock total.
           </p>
         </button>
         <button
           onClick={() => onElegir("sin_fechas")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+          className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
-            <img src={gifSinFechas} alt="" className="w-6 h-6 object-contain" />
-            <span className="text-[#1A1A1A] font-bold">Sin fechas (físico vs. teórico)</span>
+            <ClipboardList size={18} className="text-[#E2231A]" />
+            <span className="text-[#EDEAE2] font-bold">Sin fechas (físico vs. teórico)</span>
           </div>
-          <p className="text-[#4A4A4A] text-xs leading-relaxed">
+          <p className="text-[#8A9389] text-xs leading-relaxed">
             Conteo simple por SKU, comparado directo contra el stock teórico de SAP. No se desglosa por lote.
           </p>
         </button>
@@ -600,20 +588,19 @@ function PantallaFamilia({ onElegir, onVolver }) {
     <div className="min-h-screen bg-[#0E1410] flex flex-col">
       <BarraSuperiorSimple titulo="Materiales Retornables" onVolver={onVolver} />
       <div className="px-5 pt-2 max-w-md mx-auto w-full">
-        <img src={logoCocaCola} alt="Coca-Cola" className="h-32 mx-auto mb-3 object-contain" />
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-3">SELECCIONA LA FAMILIA</div>
         <div className="space-y-2.5">
           {FAMILIAS_RETORNABLES.map((f) => (
             <button
               key={f.id}
               onClick={() => onElegir(f.id)}
-              className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-[#161D14] border border-[#2A332C] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
             >
-              <div className="w-11 h-11 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
-                <img src={f.gif} alt={f.nombre} className="w-9 h-9 object-contain" />
+              <div className="w-11 h-11 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0">
+                <f.icon size={22} className="text-[#E2231A]" />
               </div>
-              <div className="flex-1 text-[#1A1A1A] font-bold">{f.nombre}</div>
-              <ChevronRight size={20} className="text-[#8A8A8A]" />
+              <div className="flex-1 text-[#EDEAE2] font-bold">{f.nombre}</div>
+              <ChevronRight size={20} className="text-[#6E776A]" />
             </button>
           ))}
         </div>
@@ -753,17 +740,17 @@ function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizan
 // ===========================================================================
 // SELECTOR DE UBICACIÓN reutilizable (con "Otros" → campo libre)
 // ===========================================================================
-function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicacionLibre, claro }) {
+function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicacionLibre }) {
   return (
     <div>
-      <label className={`text-[11px] tracking-wide block mb-1.5 ${claro ? "text-[#4A4A4A]" : "text-[#8A9389]"}`}>UBICACIÓN</label>
+      <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">UBICACIÓN</label>
       <div className="relative">
-        <MapPin size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E776A]"}`} />
+        <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
         <select
           value={ubicacion ?? ""}
           onChange={(e) => setUbicacion(e.target.value)}
-          style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}
-          className={`w-full rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A] appearance-none ${claro ? "bg-white border-2 border-[#1A1A1A]" : "bg-[#1B2119] border border-[#2A332C]"}`}
+          style={{ color: "#EDEAE2" }}
+          className="w-full bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A] appearance-none"
         >
           {!ubicacion && <option value="" disabled>Selecciona tu zona…</option>}
           {UBICACIONES_DEMO.map((u) => (
@@ -776,8 +763,7 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
           value={ubicacionLibre}
           onChange={(e) => setUbicacionLibre(e.target.value)}
           placeholder="Especifica la ubicación"
-          style={{ color: claro ? "#1A1A1A" : undefined }}
-          className={`w-full mt-2 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#1B2119] border border-[#2A332C] placeholder:text-[#4A524A]"}`}
+          className="w-full mt-2 bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-2.5 text-sm placeholder:text-[#4A524A] focus:outline-none focus:border-[#E2231A]"
         />
       )}
     </div>
@@ -792,7 +778,7 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
 // evitar el error de dedo de escribir el SKU a mano. Se elige de una lista
 // ya validada contra el catálogo en vez de tipear dígitos sueltos.
 // ===========================================================================
-function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus, claro }) {
+function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus }) {
   const [texto, setTexto] = useState(valor || "");
   const [abierto, setAbierto] = useState(false);
   const contenedorRef = useRef(null);
@@ -833,7 +819,7 @@ function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus, claro }) {
   return (
     <div ref={contenedorRef} className="relative">
       <div className="relative">
-        <Search size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E776A]"}`} />
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
         <input
           type="text"
           inputMode="numeric"
@@ -842,27 +828,27 @@ function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus, claro }) {
           onFocus={() => setAbierto(true)}
           placeholder="SKU o nombre del producto…"
           autoFocus={autoFocus}
-          style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}
-          className={`w-full mono rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:font-normal focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#1B2119] border border-[#2A332C] placeholder:text-[#4A524A]"}`}
+          style={{ color: "#EDEAE2" }}
+          className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
         />
       </div>
       {abierto && resultados.length > 0 && (
-        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg overflow-hidden shadow-lg max-h-64 overflow-y-auto ${claro ? "bg-white border border-[#C4C4C4]" : "bg-[#161D14] border border-[#2A332C]"}`}>
+        <div className="absolute z-30 left-0 right-0 mt-1 bg-[#161D14] border border-[#2A332C] rounded-lg overflow-hidden shadow-lg max-h-64 overflow-y-auto">
           {resultados.map((r) => (
             <button
               key={r.sku}
               type="button"
               onClick={() => seleccionar(r)}
-              className={`w-full text-left px-3 py-2.5 border-b last:border-b-0 ${claro ? "hover:bg-[#F0F0F0] active:bg-[#E8E8E8] border-[#D8D8D8]" : "hover:bg-[#1B2119] active:bg-[#232B20] border-[#2A332C]"}`}
+              className="w-full text-left px-3 py-2.5 hover:bg-[#1B2119] active:bg-[#232B20] border-b border-[#2A332C] last:border-b-0"
             >
-              <div className="mono text-sm font-bold" style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}>{r.sku}</div>
-              <div className="text-[11px] truncate" style={{ color: claro ? "#4A4A4A" : "#8A9389" }}>{r.nombre}</div>
+              <div className="mono text-sm font-bold" style={{ color: "#EDEAE2" }}>{r.sku}</div>
+              <div className="text-[11px] truncate" style={{ color: "#8A9389" }}>{r.nombre}</div>
             </button>
           ))}
         </div>
       )}
       {abierto && texto.trim() && resultados.length === 0 && (
-        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg px-3 py-2.5 text-[11px] ${claro ? "bg-white border border-[#C4C4C4]" : "bg-[#161D14] border border-[#2A332C]"}`} style={{ color: claro ? "#8A6D1A" : "#F2C879" }}>
+        <div className="absolute z-30 left-0 right-0 mt-1 bg-[#161D14] border border-[#2A332C] rounded-lg px-3 py-2.5 text-[11px]" style={{ color: "#F2C879" }}>
           Sin coincidencias en el catálogo — verifica el número.
         </div>
       )}
@@ -1039,12 +1025,9 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
           onClick={() => onConfirmar({
             productoId: skuEfectivo,
             agrupadorCaducidad: fechaEfectiva,
-            cantidad: unidad === "tarimas" && cajasXTarimaEfectivo
-              ? (Number(cantidad) || 1) * cajasXTarimaEfectivo
-              : (Number(cantidad) || 1),
+            cantidad: Number(cantidad) || 1,
             unidad,
             cajasXTarima: unidad === "tarimas" ? cajasXTarimaEfectivo : null,
-            tarimasCapturadas: unidad === "tarimas" ? (Number(cantidad) || 1) : null,
             ubicacion: ubicacion === "Otros" ? (ubicacionLibre.trim() || "Otros") : ubicacion,
           })}
           disabled={!puedeConfirmar}
@@ -1058,293 +1041,9 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
 }
 
 // ===========================================================================
-// CAPTURA RÁPIDA — Producto Terminado (estilo Excel: SKU → Fecha → Tarimas,
-// con teclado numérico propio en pantalla y "TAB" para saltar de campo;
-// al terminar Tarimas, guarda solo y reinicia en SKU para el siguiente
-// registro — sin botón de confirmar aparte).
+// FORMULARIO MANUAL — Producto Terminado
+// submodo "tpm": pide fecha (lote) | submodo "sin_fechas": no pide fecha
 // ===========================================================================
-function formatearFechaParcial(digitos) {
-  const d = digitos.slice(0, 2);
-  const m = digitos.slice(2, 4);
-  const y = digitos.slice(4, 6);
-  const partes = [d];
-  if (digitos.length > 2) partes.push(m);
-  if (digitos.length > 4) partes.push(y);
-  return partes.join("/");
-}
-
-function digitosAFechaISO(digitos) {
-  if (digitos.length !== 6) return null;
-  const d = digitos.slice(0, 2), m = digitos.slice(2, 4), y = digitos.slice(4, 6);
-  const dn = Number(d), mn = Number(m);
-  if (dn < 1 || dn > 31 || mn < 1 || mn > 12) return null;
-  return `20${y}-${m}-${d}`;
-}
-
-function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre }) {
-  const campos = submodo === "tpm" ? ["sku", "fecha", "tarimas"] : ["sku", "tarimas"];
-  const [campoIdx, setCampoIdx] = useState(0);
-  const [sku, setSku] = useState("");
-  const [fechaDigitos, setFechaDigitos] = useState("");
-  const [tarimas, setTarimas] = useState("");
-  const [aviso, setAviso] = useState(null);
-  const [ultimoGuardado, setUltimoGuardado] = useState(null);
-  const [tecladoNativo, setTecladoNativo] = useState(false); // para buscar SKU por nombre (letras)
-  const [ampliado, setAmpliado] = useState(false); // "zoom": teclado más grande y a todo el ancho
-  const inputSkuRef = useRef(null);
-
-  const campoActivo = campos[campoIdx];
-  const skuInfo = catalogoPT[sku.trim()];
-
-  const resultadosSku = useMemo(() => {
-    const q = sku.trim().toLowerCase();
-    if (!q || campoActivo !== "sku") return [];
-    return Object.values(catalogoPT || {})
-      .filter((e) => e.sku.toLowerCase().includes(q) || (e.nombre || "").toLowerCase().includes(q))
-      .slice(0, 5);
-  }, [catalogoPT, sku, campoActivo]);
-
-  const escribirDigito = (d) => {
-    setAviso(null);
-    if (campoActivo === "sku") setSku((s) => s + d);
-    else if (campoActivo === "fecha") setFechaDigitos((s) => (s.length < 6 ? s + d : s));
-    else if (campoActivo === "tarimas") setTarimas((s) => (s + d).slice(0, 6));
-  };
-
-  const borrar = () => {
-    setAviso(null);
-    if (campoActivo === "sku") setSku((s) => s.slice(0, -1));
-    else if (campoActivo === "fecha") setFechaDigitos((s) => s.slice(0, -1));
-    else if (campoActivo === "tarimas") setTarimas((s) => s.slice(0, -1));
-  };
-
-  const guardarYReiniciar = (tarimasVal) => {
-    const cajasXTarima = skuInfo?.cajasXTarima ?? null;
-    const tarimasNum = Number(tarimasVal);
-    const cantidadFinal = cajasXTarima ? tarimasNum * cajasXTarima : tarimasNum;
-    onAgregar({
-      productoId: sku.trim(),
-      cantidad: cantidadFinal,
-      unidad: "tarimas",
-      cajasXTarima,
-      tarimasCapturadas: tarimasNum,
-      ubicacion: ubicacionSesion === "Otros" ? (ubicacionSesionLibre.trim() || "Otros") : ubicacionSesion,
-      agrupadorCaducidad: submodo === "tpm" ? digitosAFechaISO(fechaDigitos) : null,
-      esManual: true,
-    });
-    setUltimoGuardado({
-      sku: sku.trim(), nombre: skuInfo?.nombre || null, tarimas: tarimasVal,
-      fecha: submodo === "tpm" ? formatearFechaParcial(fechaDigitos) : null,
-      sinCatalogar: !cajasXTarima,
-    });
-    setSku(""); setFechaDigitos(""); setTarimas(""); setCampoIdx(0); setAviso(null);
-  };
-
-  const avanzar = () => {
-    if (campoActivo === "sku") {
-      if (!sku.trim()) { setAviso("Captura el SKU"); return; }
-      setCampoIdx((i) => i + 1);
-    } else if (campoActivo === "fecha") {
-      if (fechaDigitos.length !== 6) { setAviso("Captura los 6 dígitos: DDMMAA"); return; }
-      if (!digitosAFechaISO(fechaDigitos)) { setAviso("Fecha inválida"); return; }
-      setCampoIdx((i) => i + 1);
-    } else if (campoActivo === "tarimas") {
-      if (!tarimas || Number(tarimas) <= 0) { setAviso("Captura las tarimas"); return; }
-      guardarYReiniciar(tarimas);
-    }
-  };
-
-  // Retroceder: solo mueve el foco al campo anterior, sin validar ni borrar
-  // nada — para corregir un campo previo sin tener que reiniciar todo.
-  const retroceder = () => {
-    setAviso(null);
-    setCampoIdx((i) => Math.max(0, i - 1));
-  };
-
-  // Activa el teclado nativo del iPad/celular sobre el campo de SKU — para
-  // cuando no se tiene a la vista el número y hace falta buscar por nombre.
-  const activarTecladoNativo = () => {
-    setTecladoNativo(true);
-    if (campoActivo !== "sku") setCampoIdx(0);
-    requestAnimationFrame(() => inputSkuRef.current?.focus());
-  };
-
-  const campoInfo = {
-    sku: { etiqueta: "SKU", valor: sku, placeholder: "Teclea el SKU…" },
-    fecha: { etiqueta: "FECHA (DDMMAA)", valor: formatearFechaParcial(fechaDigitos), placeholder: "Ej. 23/04/26" },
-    tarimas: { etiqueta: "TARIMAS", valor: tarimas, placeholder: "Teclea las tarimas…" },
-  };
-
-  return (
-    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[#E2231A]">
-          <PenLine size={16} />
-          <span className="text-sm font-bold" style={{ color: "#E2231A" }}>Captura rápida</span>
-        </div>
-        <span className="text-[10px] text-[#4A4A4A]">
-          {ubicacionSesion === "Otros" ? (ubicacionSesionLibre || "Otros") : ubicacionSesion}
-        </span>
-      </div>
-
-      {/* Campos — el activo queda remarcado en rojo */}
-      <div className="space-y-2">
-        {campos.map((c) => {
-          const info = campoInfo[c];
-          const activo = c === campoActivo;
-          const esCampoSku = c === "sku";
-          return (
-            <div key={c} className="relative">
-              <label className="text-[10px] text-[#4A4A4A] tracking-wide block mb-1">{info.etiqueta}</label>
-              {esCampoSku && tecladoNativo ? (
-                <input
-                  ref={inputSkuRef}
-                  value={sku}
-                  onChange={(e) => { setAviso(null); setSku(e.target.value); }}
-                  onFocus={() => setCampoIdx(0)}
-                  placeholder={info.placeholder}
-                  style={{ color: "#1A1A1A" }}
-                  className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono bg-white focus:outline-none ${activo ? "border-2 border-[#E2231A]" : "border border-[#C4C4C4]"}`}
-                />
-              ) : (
-                <div
-                  className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
-                  style={{ color: info.valor ? "#1A1A1A" : "#8A8A8A" }}
-                >
-                  {info.valor || info.placeholder}
-                </div>
-              )}
-              {c === "sku" && activo && skuInfo && (
-                <div className="text-[11px] text-[#1F7A3D] mt-1">✓ {skuInfo.nombre}{skuInfo.cajasXTarima ? ` · ${skuInfo.cajasXTarima} cajas/tarima` : ""}</div>
-              )}
-              {c === "sku" && activo && sku.trim() && !skuInfo && (
-                <div className="text-[11px] text-[#8A6D1A] mt-1">Sin catálogo — se guardará solo el número de tarimas (sin multiplicar)</div>
-              )}
-              {c === "sku" && activo && resultadosSku.length > 0 && (
-                <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#C4C4C4] rounded-lg overflow-hidden shadow-lg">
-                  {resultadosSku.map((r) => (
-                    <button
-                      key={r.sku}
-                      onClick={() => { setSku(r.sku); setTecladoNativo(false); }}
-                      className="w-full text-left px-3 py-2 hover:bg-[#F0F0F0] border-b border-[#E0E0E0] last:border-b-0"
-                    >
-                      <span className="mono text-sm font-bold text-[#1A1A1A]">{r.sku}</span>
-                      <span className="text-[11px] text-[#4A4A4A] ml-2">{r.nombre}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {aviso && (
-        <div className="flex items-center gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-2.5 text-[12px] text-white">
-          <AlertTriangle size={14} className="shrink-0" /> {aviso}
-        </div>
-      )}
-
-      {ultimoGuardado && (
-        <div className="flex items-center gap-2 bg-[#EAF5EC] border border-[#9FD3A6] rounded-lg p-2.5 text-[12px] text-[#1F7A3D]">
-          <CheckCircle2 size={14} className="shrink-0" />
-          Guardado: {ultimoGuardado.sku}{ultimoGuardado.nombre ? ` — ${ultimoGuardado.nombre}` : ""} · {ultimoGuardado.tarimas} tarimas
-          {ultimoGuardado.fecha ? ` · ${ultimoGuardado.fecha}` : ""}
-          {ultimoGuardado.sinCatalogar ? " · SIN CATÁLOGO" : ""}
-        </div>
-      )}
-
-      {/* Barra de utilidades: teclado nativo (buscar por nombre) + zoom */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => tecladoNativo ? (setTecladoNativo(false), inputSkuRef.current?.blur()) : activarTecladoNativo()}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-xs font-medium ${tecladoNativo ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}
-        >
-          <Keyboard size={14} /> {tecladoNativo ? "Usando teclado del dispositivo" : "Buscar SKU por nombre (teclado normal)"}
-        </button>
-        <button
-          onClick={() => setAmpliado((v) => !v)}
-          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border text-xs font-medium ${ampliado ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}
-        >
-          {ampliado ? <ZoomOut size={14} /> : <ZoomIn size={14} />}
-        </button>
-      </div>
-
-      {/* Teclado propio: TAB, flechas de navegación, y numérico.
-          En modo "ampliado" se estira a todo el ancho del dispositivo (útil
-          en iPad, donde el iPad 10a gen deja el teclado muy al centro y no
-          alcanzan los pulgares sosteniéndolo por los bordes). */}
-      <div className={ampliado ? "relative left-1/2 right-1/2 -mx-[50vw] w-screen px-3" : ""}>
-        <div className={`grid gap-2 pt-1 ${ampliado ? "grid-cols-[auto_auto_1fr] max-w-3xl mx-auto" : "grid-cols-[auto_1fr]"}`}>
-          <button
-            onClick={avanzar}
-            className={`rounded-xl bg-[#1A1A1A] text-white font-bold flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform ${ampliado ? "w-28 text-base" : "w-20 text-sm"}`}
-          >
-            <span className={ampliado ? "text-3xl leading-none" : "text-2xl leading-none"}>⇥</span>
-            <span>TAB</span>
-          </button>
-
-          {/* Flechas de navegación entre campos */}
-          <div className={`grid grid-rows-[auto_auto] gap-2 ${ampliado ? "w-40" : "w-28"}`}>
-            <button
-              onClick={retroceder}
-              className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
-            >
-              <ArrowUp size={ampliado ? 24 : 18} />
-            </button>
-            <div className={`grid grid-cols-2 gap-2`}>
-              <button
-                onClick={borrar}
-                className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
-              >
-                <ArrowLeft size={ampliado ? 24 : 18} />
-              </button>
-              <button
-                onClick={avanzar}
-                className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
-              >
-                <ArrowRight size={ampliado ? 24 : 18} />
-              </button>
-            </div>
-            <button
-              onClick={avanzar}
-              className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
-            >
-              <ArrowDown size={ampliado ? 24 : 18} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
-              <button
-                key={d}
-                onClick={() => escribirDigito(d)}
-                className={`rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform ${ampliado ? "py-5 text-2xl" : "py-3 text-xl"}`}
-              >
-                {d}
-              </button>
-            ))}
-            <button
-              onClick={borrar}
-              className={`rounded-xl bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] flex items-center justify-center active:bg-[#E0E0E0] active:scale-[0.97] transition-transform ${ampliado ? "py-5" : "py-3"}`}
-            >
-              <XCircle size={ampliado ? 26 : 20} />
-            </button>
-            <button
-              onClick={() => escribirDigito("0")}
-              className={`rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform ${ampliado ? "py-5 text-2xl" : "py-3 text-xl"}`}
-            >
-              0
-            </button>
-            <div />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
 function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre }) {
   const [material, setMaterial] = useState("");
   const [cantidad, setCantidad] = useState("");
@@ -1371,18 +1070,11 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
     if (!cantidad || Number(cantidad) <= 0) return setError("Ingresa una cantidad válida.");
     if (unidad === "tarimas" && !cajasXTarimaEfectivo) return setError("Este SKU no está en la base de datos. Ingresa cuántas cajas trae cada tarima.");
     if (ubicacion === "Otros" && !ubicacionLibre.trim()) return setError("Especifica la ubicación.");
-    // OJO: si la unidad es "tarimas", lo que se guarda debe ser el total en
-    // CAJAS (tarimas × armado) — antes se guardaba el número de tarimas tal
-    // cual, sin multiplicar, aunque en pantalla sí se mostraba bien el total.
-    const cantidadFinal = unidad === "tarimas" && cajasXTarimaEfectivo
-      ? Number(cantidad) * cajasXTarimaEfectivo
-      : Number(cantidad);
     onAgregar({
       productoId: material.trim(),
-      cantidad: cantidadFinal,
+      cantidad: Number(cantidad),
       unidad,
       cajasXTarima: unidad === "tarimas" ? cajasXTarimaEfectivo : null,
-      tarimasCapturadas: unidad === "tarimas" ? Number(cantidad) : null,
       ubicacion: ubicacion === "Otros" ? ubicacionLibre.trim() : ubicacion,
       agrupadorCaducidad: submodo === "tpm" ? fecha : null,
       esManual: true,
@@ -1391,45 +1083,44 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
   };
 
   return (
-    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-4 space-y-4">
+    <div className="bg-[#161D14] border border-[#2A332C] rounded-xl p-4 space-y-4">
       <div className="flex items-center gap-2 text-[#E2231A]">
         <PenLine size={16} />
         <span className="text-sm font-bold" style={{ color: "#E2231A" }}>Captura sin etiqueta</span>
       </div>
 
-      <SelectorUbicacion ubicacion={ubicacion} setUbicacion={setUbicacion} ubicacionLibre={ubicacionLibre} setUbicacionLibre={setUbicacionLibre} claro />
+      <SelectorUbicacion ubicacion={ubicacion} setUbicacion={setUbicacion} ubicacionLibre={ubicacionLibre} setUbicacionLibre={setUbicacionLibre} />
 
       <div>
-        <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">MATERIAL (SKU)</label>
-        <BuscadorSKU catalogoPT={catalogoPT} valor={material} onSeleccionar={setMaterial} claro />
-        {nombreSugerido && <div className="text-[11px] text-[#1F7A3D] mt-1.5">✓ {nombreSugerido}</div>}
-        {material.trim() && !nombreSugerido && <div className="text-[11px] text-[#8A6D1A] mt-1.5">No está en la base de datos — se guardará para revisión</div>}
+        <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">MATERIAL (SKU)</label>
+        <BuscadorSKU catalogoPT={catalogoPT} valor={material} onSeleccionar={setMaterial} />
+        {nombreSugerido && <div className="text-[11px] text-[#9FD3A6] mt-1.5">✓ {nombreSugerido}</div>}
+        {material.trim() && !nombreSugerido && <div className="text-[11px] text-[#F2C879] mt-1.5">No está en la base de datos — se guardará para revisión</div>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">CANTIDAD</label>
+          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">CANTIDAD</label>
           <input
             type="number" inputMode="numeric" pattern="[0-9]*" min="1"
             value={cantidad}
             onChange={(e) => setCantidad(e.target.value)}
             placeholder="Ej. 39"
-            style={{ color: "#1A1A1A" }}
-            className="w-full mono bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#8A8A8A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
+            className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
           />
         </div>
         <div>
-          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">UNIDAD</label>
+          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">UNIDAD</label>
           <div className="grid grid-cols-2 gap-1.5 h-[46px]">
-            <button onClick={() => setUnidad("tarimas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "tarimas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}>Tarimas</button>
-            <button onClick={() => setUnidad("cajas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "cajas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white border-[#8A8A8A] text-[#1A1A1A]"}`}>Cajas</button>
+            <button onClick={() => setUnidad("tarimas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "tarimas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}>Tarimas</button>
+            <button onClick={() => setUnidad("cajas")} className={`flex items-center justify-center rounded-lg border text-xs font-medium ${unidad === "cajas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}>Cajas</button>
           </div>
         </div>
       </div>
 
       {unidad === "tarimas" && (
         <div>
-          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">CAJAS POR TARIMA</label>
+          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">CAJAS POR TARIMA</label>
           {cajasXTarimaCatalogo ? (
             <div className="bg-[#15201A] border border-[#2A332C] rounded-lg px-3 py-2.5 flex items-center justify-between">
               <span className="text-[11px] text-[#9FD3A6]">✓ De la base de datos</span>
@@ -1443,14 +1134,13 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
                 onChange={(e) => setCajasPorTarimaManual(e.target.value)}
                 placeholder="Ej. 40"
                 disabled={!material.trim()}
-                style={{ color: "#1A1A1A" }}
-                className="w-full mono bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#8A8A8A] placeholder:font-normal focus:outline-none focus:border-[#E2231A] disabled:opacity-40"
+                className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A] disabled:opacity-40"
               />
-              {material.trim() && <div className="text-[11px] text-[#8A6D1A] mt-1.5">SKU no encontrado en la base de datos — captúralo manualmente</div>}
+              {material.trim() && <div className="text-[11px] text-[#F2C879] mt-1.5">SKU no encontrado en la base de datos — captúralo manualmente</div>}
             </>
           )}
           {totalCajas !== null && (
-            <div className="mt-1.5 text-[11px] text-[#1F7A3D] mono">
+            <div className="mt-1.5 text-[11px] text-[#9FD3A6] mono">
               = {cantidad} × {cajasXTarimaEfectivo} = <span className="font-bold">{totalCajas} cajas</span> en total
             </div>
           )}
@@ -1459,15 +1149,15 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
 
       {submodo === "tpm" && (
         <div>
-          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">FECHA DE MÁXIMA FRESCURA</label>
+          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">FECHA DE MÁXIMA FRESCURA</label>
           <div className="relative">
-            <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A4A4A]" />
+            <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
             <input
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              style={{ color: "#1A1A1A", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
-              className="w-full max-w-full block mono bg-white border-2 border-[#1A1A1A] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
+              style={{ color: "#EDEAE2", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
+              className="w-full max-w-full block mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
             />
           </div>
         </div>
@@ -1815,13 +1505,12 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
       </div>
 
       <div className="relative">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A4A4A]" />
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
         <input
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
           placeholder="Filtrar por SKU o nombre"
-          style={{ color: "#1A1A1A" }}
-          className="w-full bg-white border-2 border-[#1A1A1A] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#E2231A]"
+          className="w-full bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-[#4A524A] focus:outline-none focus:border-[#E2231A]"
         />
       </div>
 
@@ -2492,7 +2181,7 @@ export default function InventarioApp() {
   const agregarManualPT = (datos) => {
     confirmarYAgregar(
       { productoId: datos.productoId, agrupadorCaducidad: datos.agrupadorCaducidad, linea: "—", cajasXPalet: null, cajasXTarima: datos.cajasXTarima, esManual: true },
-      { cantidad: datos.cantidad, unidad: datos.unidad, ubicacion: datos.ubicacion, tarimasCapturadas: datos.tarimasCapturadas }
+      { cantidad: datos.cantidad, unidad: datos.unidad, ubicacion: datos.ubicacion }
     );
   };
 
@@ -2701,12 +2390,12 @@ export default function InventarioApp() {
             {esRetornable && (
               <button
                 onClick={() => setMostrarUbicacionSesion(true)}
-                className="w-full bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-2.5 flex items-center justify-between"
+                className="w-full bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-2.5 flex items-center justify-between"
               >
-                <span className="flex items-center gap-2 text-sm text-[#4A4A4A]">
+                <span className="flex items-center gap-2 text-sm text-[#C9CFC5]">
                   <MapPin size={15} className="text-[#E2231A]" /> Ubicación
                 </span>
-                <span className="text-sm font-bold text-[#1A1A1A]">
+                <span className="text-sm font-bold text-[#EDEAE2]">
                   {ubicacionSesion === "Otros" ? (ubicacionSesionLibre || "Otros") : ubicacionSesion}
                 </span>
               </button>
@@ -2760,18 +2449,13 @@ export default function InventarioApp() {
                 )}
               </>
             ) : (
-              <>
-                <CapturaRapidaPT
-                  submodo={submodoPT}
-                  catalogoPT={catalogoPT}
-                  onAgregar={agregarManualPT}
-                  ubicacionSesion={ubicacionSesion}
-                  ubicacionSesionLibre={ubicacionSesionLibre}
-                />
-                {/* Formulario anterior (con más campos) oculto por ahora —
-                    se deja el código en FormularioPTManual por si se quiere
-                    retomar. Ver componente definido más arriba. */}
-              </>
+              <FormularioPTManual
+                submodo={submodoPT}
+                catalogoPT={catalogoPT}
+                onAgregar={agregarManualPT}
+                ubicacionSesion={ubicacionSesion}
+                ubicacionSesionLibre={ubicacionSesionLibre}
+              />
             )}
           </div>
         )}
@@ -2980,10 +2664,10 @@ function EscaneoDetalle({ e, compact, catalogo }) {
       </div>
       <div className="flex items-center gap-2 mt-2 flex-wrap">
         <span className="mono text-base font-bold" style={{ color: compact ? "#1F7A3D" : "#9FD3A6" }}>{Math.round(e.cantidad)}</span>
-        <span className="text-xs" style={{ color: colorSecundario }}>{e.unidad === "piezas" ? "piezas" : "cajas"}</span>
-        {e.tarimasCapturadas != null && e.cajasXTarima && (
+        <span className="text-xs" style={{ color: colorSecundario }}>{e.unidad === "tarimas" ? "tarimas" : e.unidad === "piezas" ? "piezas" : "cajas"}</span>
+        {e.unidad === "tarimas" && e.cajasXTarima && (
           <span className="mono text-sm font-bold text-white bg-[#1A1A1A] px-2 py-0.5 rounded-md">
-            {e.tarimasCapturadas} tarimas × {e.cajasXTarima}
+            × {e.cajasXTarima} = {e.cantidad * e.cajasXTarima} cajas
           </span>
         )}
         {e.tarimasCompletas != null && e.factor != null && (
