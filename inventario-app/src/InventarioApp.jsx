@@ -1275,59 +1275,60 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
           en iPad, donde el iPad 10a gen deja el teclado muy al centro y no
           alcanzan los pulgares sosteniéndolo por los bordes). */}
       <div className={ampliado ? "relative left-1/2 right-1/2 -mx-[50vw] w-screen px-3" : ""}>
-        <div className={`grid gap-2 pt-1 ${ampliado ? "grid-cols-[auto_auto_1fr] max-w-3xl mx-auto" : "grid-cols-[auto_1fr]"}`}>
-          <button
-            onClick={avanzar}
-            className={`rounded-xl bg-[#1A1A1A] text-white font-bold flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform ${ampliado ? "w-28 text-base" : "w-20 text-sm"}`}
-          >
-            <span className={ampliado ? "text-3xl leading-none" : "text-2xl leading-none"}>⇥</span>
-            <span>TAB</span>
-          </button>
-
-          {/* Flechas de navegación entre campos */}
-          <div className={`grid grid-rows-[auto_auto] gap-2 ${ampliado ? "w-40" : "w-28"}`}>
+        <div className={ampliado ? "bg-[#E8E8E8] rounded-2xl py-4 px-3 max-w-3xl mx-auto" : ""}>
+          <div className="grid grid-cols-[auto_auto_1fr] gap-2 pt-1">
             <button
-              onClick={retroceder}
-              className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
+              onClick={avanzar}
+              className={`rounded-xl bg-[#1A1A1A] text-white font-bold flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform ${ampliado ? "w-28 text-base" : "w-20 text-sm"}`}
             >
-              <ArrowUp size={ampliado ? 24 : 18} />
+              <span className={ampliado ? "text-3xl leading-none" : "text-2xl leading-none"}>⇥</span>
+              <span>TAB</span>
             </button>
-            <div className={`grid grid-cols-2 gap-2`}>
+
+            {/* Flechas de navegación entre campos */}
+            <div className={`grid grid-rows-[auto_auto_auto] gap-2 ${ampliado ? "w-40" : "w-28"}`}>
               <button
-                onClick={borrar}
+                onClick={retroceder}
                 className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
               >
-                <ArrowLeft size={ampliado ? 24 : 18} />
+                <ArrowUp size={ampliado ? 24 : 18} />
               </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={borrar}
+                  className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
+                >
+                  <ArrowLeft size={ampliado ? 24 : 18} />
+                </button>
+                <button
+                  onClick={avanzar}
+                  className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
+                >
+                  <ArrowRight size={ampliado ? 24 : 18} />
+                </button>
+              </div>
               <button
                 onClick={avanzar}
                 className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
               >
-                <ArrowRight size={ampliado ? 24 : 18} />
+                <ArrowDown size={ampliado ? 24 : 18} />
               </button>
             </div>
-            <button
-              onClick={avanzar}
-              className={`rounded-xl bg-[#2A2A2A] text-white flex items-center justify-center active:scale-[0.97] transition-transform ${ampliado ? "py-4" : "py-2.5"}`}
-            >
-              <ArrowDown size={ampliado ? 24 : 18} />
-            </button>
-          </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
+            <div className="grid grid-cols-3 gap-2">
+              {["7", "8", "9", "4", "5", "6", "1", "2", "3"].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => escribirDigito(d)}
+                  className={`rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform ${ampliado ? "py-5 text-2xl" : "py-3 text-xl"}`}
+                >
+                  {d}
+                </button>
+              ))}
               <button
-                key={d}
-                onClick={() => escribirDigito(d)}
-                className={`rounded-xl bg-white border border-[#C4C4C4] text-[#1A1A1A] font-bold active:bg-[#EDEDED] active:scale-[0.97] transition-transform ${ampliado ? "py-5 text-2xl" : "py-3 text-xl"}`}
+                onClick={borrar}
+                className={`rounded-xl bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] flex items-center justify-center active:bg-[#E0E0E0] active:scale-[0.97] transition-transform ${ampliado ? "py-5" : "py-3"}`}
               >
-                {d}
-              </button>
-            ))}
-            <button
-              onClick={borrar}
-              className={`rounded-xl bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] flex items-center justify-center active:bg-[#E0E0E0] active:scale-[0.97] transition-transform ${ampliado ? "py-5" : "py-3"}`}
-            >
               <XCircle size={ampliado ? 26 : 20} />
             </button>
             <button
@@ -1338,6 +1339,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
             </button>
             <div />
           </div>
+        </div>
         </div>
       </div>
     </div>
