@@ -309,6 +309,26 @@ function descargarArchivo(nombre, contenido) {
   URL.revokeObjectURL(url);
 }
 
+// Trae TODAS las filas de una tabla/vista, paginando de 1000 en 1000 —
+// Supabase/PostgREST corta cada consulta a 1000 filas por default, y tanto
+// el catálogo como el histórico de escaneos ya pueden pasar de eso.
+async function traerTodasLasFilas(nombreTabla) {
+  const TAMANO_PAGINA = 1000;
+  let data = [];
+  let desde = 0;
+  while (true) {
+    const { data: pagina, error } = await supabase
+      .from(nombreTabla)
+      .select("*")
+      .range(desde, desde + TAMANO_PAGINA - 1);
+    if (error) return { data: null, error };
+    data = data.concat(pagina);
+    if (pagina.length < TAMANO_PAGINA) break;
+    desde += TAMANO_PAGINA;
+  }
+  return { data, error: null };
+}
+
 function ModalExportar({ onCerrar }) {
   const [pin, setPin] = useState("");
   const [fase, setFase] = useState("pin"); // pin | exportando | listo
@@ -323,8 +343,8 @@ function ModalExportar({ onCerrar }) {
     setFase("exportando");
     try {
       const [{ data: catalogo, error: e1 }, { data: escaneado, error: e2 }] = await Promise.all([
-        supabase.from("vista_catalogo_export").select("*"),
-        supabase.from("vista_escaneado_export").select("*"),
+        traerTodasLasFilas("vista_catalogo_export"),
+        traerTodasLasFilas("vista_escaneado_export"),
       ]);
       if (e1) throw e1;
       if (e2) throw e2;
@@ -1094,7 +1114,7 @@ function digitosAFechaISO(digitos) {
   return `20${y}-${m}-${d}`;
 }
 
-function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre }) {
+function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre, onCambiarUbicacion }) {
   const campos = submodo === "tpm" ? ["sku", "fecha", "cantidad"] : ["sku", "cantidad"];
   const [campoIdx, setCampoIdx] = useState(0);
   const [sku, setSku] = useState("");
@@ -1220,9 +1240,14 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
           <PenLine size={16} />
           <span className="text-sm font-bold" style={{ color: "#E2231A" }}>Captura rápida</span>
         </div>
-        <span className="text-[10px] text-[#4A4A4A]">
+        <button
+          onClick={onCambiarUbicacion}
+          className="flex items-center gap-1 text-[11px] font-bold text-[#1A1A1A] bg-white border border-[#C4C4C4] rounded-md px-2 py-1"
+        >
+          <MapPin size={11} className="text-[#E2231A]" />
           {ubicacionSesion === "Otros" ? (ubicacionSesionLibre || "Otros") : ubicacionSesion}
-        </span>
+          <PenLine size={10} className="text-[#8A8A8A]" />
+        </button>
       </div>
 
       {/* Campos — el activo queda remarcado en rojo */}
@@ -2763,19 +2788,17 @@ export default function InventarioApp() {
               </div>
             )}
 
-            {esRetornable && (
-              <button
-                onClick={() => setMostrarUbicacionSesion(true)}
-                className="w-full bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-2.5 flex items-center justify-between"
-              >
-                <span className="flex items-center gap-2 text-sm text-[#4A4A4A]">
-                  <MapPin size={15} className="text-[#E2231A]" /> Ubicación
-                </span>
-                <span className="text-sm font-bold text-[#1A1A1A]">
-                  {ubicacionSesion === "Otros" ? (ubicacionSesionLibre || "Otros") : ubicacionSesion}
-                </span>
-              </button>
-            )}
+            <button
+              onClick={() => setMostrarUbicacionSesion(true)}
+              className="w-full bg-white border-2 border-[#1A1A1A] rounded-lg px-3 py-2.5 flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2 text-sm text-[#4A4A4A]">
+                <MapPin size={15} className="text-[#E2231A]" /> Ubicación
+              </span>
+              <span className="text-sm font-bold text-[#1A1A1A]">
+                {ubicacionSesion === "Otros" ? (ubicacionSesionLibre || "Otros") : ubicacionSesion}
+              </span>
+            </button>
 
             {esRetornable ? (
               <FormularioRetornable familiaId={familiaId} catalogoRetornables={catalogoRetornables} escaneos={escaneos} onAgregar={agregarRetornable} />
@@ -2832,6 +2855,7 @@ export default function InventarioApp() {
                   onAgregar={agregarManualPT}
                   ubicacionSesion={ubicacionSesion}
                   ubicacionSesionLibre={ubicacionSesionLibre}
+                  onCambiarUbicacion={() => setMostrarUbicacionSesion(true)}
                 />
                 {/* Formulario anterior (con más campos) oculto por ahora —
                     se deja el código en FormularioPTManual por si se quiere
