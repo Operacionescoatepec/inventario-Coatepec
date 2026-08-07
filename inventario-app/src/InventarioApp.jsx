@@ -1082,11 +1082,14 @@ function digitosAFechaISO(digitos) {
 }
 
 function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre }) {
-  const campos = submodo === "tpm" ? ["sku", "fecha", "tarimas"] : ["sku", "tarimas"];
+  const campos = submodo === "tpm" ? ["sku", "fecha", "cantidad"] : ["sku", "cantidad"];
   const [campoIdx, setCampoIdx] = useState(0);
   const [sku, setSku] = useState("");
   const [fechaDigitos, setFechaDigitos] = useState("");
   const [tarimas, setTarimas] = useState("");
+  const [modoCantidad, setModoCantidad] = useState("tarimas"); // "tarimas" | "restos" — predeterminado: tarimas
+  const [armadoManual, setArmadoManual] = useState(""); // editable — el del catálogo es solo el punto de partida
+  const [editandoArmado, setEditandoArmado] = useState(false);
   const [aviso, setAviso] = useState(null);
   const [ultimoGuardado, setUltimoGuardado] = useState(null);
   const [tecladoNativo, setTecladoNativo] = useState(false); // para buscar SKU por nombre (letras)
@@ -1106,50 +1109,67 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
 
   const escribirDigito = (d) => {
     setAviso(null);
-    if (campoActivo === "sku") setSku((s) => s + d);
+    if (editandoArmado) setArmadoManual((s) => (s + d).slice(0, 5));
+    else if (campoActivo === "sku") setSku((s) => s + d);
     else if (campoActivo === "fecha") setFechaDigitos((s) => (s.length < 6 ? s + d : s));
-    else if (campoActivo === "tarimas") setTarimas((s) => (s + d).slice(0, 6));
+    else if (campoActivo === "cantidad") setTarimas((s) => (s + d).slice(0, 6));
   };
 
   const borrar = () => {
     setAviso(null);
-    if (campoActivo === "sku") setSku((s) => s.slice(0, -1));
+    if (editandoArmado) setArmadoManual((s) => s.slice(0, -1));
+    else if (campoActivo === "sku") setSku((s) => s.slice(0, -1));
     else if (campoActivo === "fecha") setFechaDigitos((s) => s.slice(0, -1));
-    else if (campoActivo === "tarimas") setTarimas((s) => s.slice(0, -1));
+    else if (campoActivo === "cantidad") setTarimas((s) => s.slice(0, -1));
   };
 
-  const guardarYReiniciar = (tarimasVal) => {
-    const cajasXTarima = skuInfo?.cajasXTarima ?? null;
-    const tarimasNum = Number(tarimasVal);
-    const cantidadFinal = cajasXTarima ? tarimasNum * cajasXTarima : tarimasNum;
+  const guardarYReiniciar = (valor) => {
+    const valorNum = Number(valor);
+    const armadoNum = Number(armadoManual) || null;
+    const esTarimas = modoCantidad === "tarimas";
+    const cantidadFinal = esTarimas && armadoNum ? valorNum * armadoNum : valorNum;
     onAgregar({
       productoId: sku.trim(),
       cantidad: cantidadFinal,
-      unidad: "tarimas",
-      cajasXTarima,
-      tarimasCapturadas: tarimasNum,
+      unidad: esTarimas ? "tarimas" : "piezas",
+      cajasXTarima: esTarimas ? armadoNum : null,
+      tarimasCapturadas: esTarimas ? valorNum : null,
       ubicacion: ubicacionSesion === "Otros" ? (ubicacionSesionLibre.trim() || "Otros") : ubicacionSesion,
       agrupadorCaducidad: submodo === "tpm" ? digitosAFechaISO(fechaDigitos) : null,
       esManual: true,
     });
     setUltimoGuardado({
-      sku: sku.trim(), nombre: skuInfo?.nombre || null, tarimas: tarimasVal,
+      sku: sku.trim(), nombre: skuInfo?.nombre || null, tarimas: valor, modo: modoCantidad,
       fecha: submodo === "tpm" ? formatearFechaParcial(fechaDigitos) : null,
-      sinCatalogar: !cajasXTarima,
+      sinCatalogar: esTarimas && !armadoNum,
     });
-    setSku(""); setFechaDigitos(""); setTarimas(""); setCampoIdx(0); setAviso(null);
+    setSku(""); setFechaDigitos(""); setTarimas(""); setModoCantidad("tarimas");
+    setArmadoManual(""); setEditandoArmado(false); setCampoIdx(0); setAviso(null);
   };
 
   const avanzar = () => {
+    if (editandoArmado) { setEditandoArmado(false); return; }
     if (campoActivo === "sku") {
       if (!sku.trim()) { setAviso("Captura el SKU"); return; }
+      // Al salir del SKU, el armado arranca con el del catálogo (si lo
+      // trae) — pero queda libre para corregirlo, porque el mismo
+      // producto puede traer un armado distinto según qué planta lo hizo.
+      setArmadoManual(skuInfo?.cajasXTarima ? String(skuInfo.cajasXTarima) : "");
       setCampoIdx((i) => i + 1);
     } else if (campoActivo === "fecha") {
       if (fechaDigitos.length !== 6) { setAviso("Captura los 6 dígitos: DDMMAA"); return; }
       if (!digitosAFechaISO(fechaDigitos)) { setAviso("Fecha inválida"); return; }
       setCampoIdx((i) => i + 1);
-    } else if (campoActivo === "tarimas") {
-      if (!tarimas || Number(tarimas) <= 0) { setAviso("Captura las tarimas"); return; }
+    } else if (campoActivo === "cantidad") {
+      if (!tarimas || Number(tarimas) <= 0) {
+        setAviso(modoCantidad === "tarimas" ? "Captura las tarimas" : "Captura los restos");
+        return;
+      }
+      if (modoCantidad === "tarimas" && !armadoManual) {
+        setAviso("Captura el armado (cajas por tarima) antes de guardar");
+        setEditandoArmado(true);
+        return;
+      }
       guardarYReiniciar(tarimas);
     }
   };
@@ -1158,6 +1178,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   // nada — para corregir un campo previo sin tener que reiniciar todo.
   const retroceder = () => {
     setAviso(null);
+    if (editandoArmado) { setEditandoArmado(false); return; }
     setCampoIdx((i) => Math.max(0, i - 1));
   };
 
@@ -1172,7 +1193,11 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   const campoInfo = {
     sku: { etiqueta: "SKU", valor: sku, placeholder: "Teclea el SKU…" },
     fecha: { etiqueta: "FECHA (DDMMAA)", valor: formatearFechaParcial(fechaDigitos), placeholder: "Ej. 23/04/26" },
-    tarimas: { etiqueta: "TARIMAS", valor: tarimas, placeholder: "Teclea las tarimas…" },
+    cantidad: {
+      etiqueta: modoCantidad === "tarimas" ? "TARIMAS" : "RESTOS (piezas sueltas)",
+      valor: tarimas,
+      placeholder: modoCantidad === "tarimas" ? "Teclea las tarimas…" : "Teclea los restos…",
+    },
   };
 
   return (
@@ -1195,24 +1220,62 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
           const esCampoSku = c === "sku";
           return (
             <div key={c} className="relative">
-              <label className="text-[10px] text-[#4A4A4A] tracking-wide block mb-1">{info.etiqueta}</label>
-              {esCampoSku && tecladoNativo ? (
-                <input
-                  ref={inputSkuRef}
-                  value={sku}
-                  onChange={(e) => { setAviso(null); setSku(e.target.value); }}
-                  onFocus={() => setCampoIdx(0)}
-                  placeholder={info.placeholder}
-                  style={{ color: "#1A1A1A" }}
-                  className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono bg-white focus:outline-none ${activo ? "border-2 border-[#E2231A]" : "border border-[#C4C4C4]"}`}
-                />
-              ) : (
-                <div
-                  className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
-                  style={{ color: info.valor ? "#1A1A1A" : "#8A8A8A" }}
-                >
-                  {info.valor || info.placeholder}
+              {c === "cantidad" && (
+                <div className="flex items-center gap-2 mb-1.5">
+                  <button
+                    onClick={() => { setModoCantidad("tarimas"); setEditandoArmado(false); }}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-bold border ${modoCantidad === "tarimas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white text-[#4A4A4A] border-[#C4C4C4]"}`}
+                  >
+                    Tarimas
+                  </button>
+                  <button
+                    onClick={() => { setModoCantidad("restos"); setEditandoArmado(false); }}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-bold border ${modoCantidad === "restos" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-white text-[#4A4A4A] border-[#C4C4C4]"}`}
+                  >
+                    Restos
+                  </button>
+                  {modoCantidad === "tarimas" && (
+                    <button
+                      onClick={() => { setEditandoArmado(true); setCampoIdx(campos.indexOf("cantidad")); }}
+                      className={`ml-auto mono text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1 ${editandoArmado ? "bg-[#E2231A] text-white" : "bg-[#1A1A1A] text-white"}`}
+                    >
+                      ×{armadoManual || "?"} <PenLine size={10} />
+                    </button>
+                  )}
                 </div>
+              )}
+              {c === "cantidad" && editandoArmado ? (
+                <>
+                  <label className="text-[10px] text-[#E2231A] tracking-wide block mb-1">ARMADO (cajas por tarima)</label>
+                  <div
+                    className="w-full rounded-lg px-3 py-3 text-lg font-bold mono bg-white border-2 border-[#E2231A]"
+                    style={{ color: armadoManual ? "#1A1A1A" : "#8A8A8A" }}
+                  >
+                    {armadoManual || "Teclea el armado…"}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <label className="text-[10px] text-[#4A4A4A] tracking-wide block mb-1">{info.etiqueta}</label>
+                  {esCampoSku && tecladoNativo ? (
+                    <input
+                      ref={inputSkuRef}
+                      value={sku}
+                      onChange={(e) => { setAviso(null); setSku(e.target.value); }}
+                      onFocus={() => setCampoIdx(0)}
+                      placeholder={info.placeholder}
+                      style={{ color: "#1A1A1A" }}
+                      className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono bg-white focus:outline-none ${activo ? "border-2 border-[#E2231A]" : "border border-[#C4C4C4]"}`}
+                    />
+                  ) : (
+                    <div
+                      className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
+                      style={{ color: info.valor ? "#1A1A1A" : "#8A8A8A" }}
+                    >
+                      {info.valor || info.placeholder}
+                    </div>
+                  )}
+                </>
               )}
               {c === "sku" && activo && skuInfo && (
                 <div className="absolute left-0 right-0 top-full mt-1 text-[11px] text-[#1F7A3D] bg-[#E8E8E8] px-1 z-10">✓ {skuInfo.nombre}{skuInfo.cajasXTarima ? ` · ${skuInfo.cajasXTarima} cajas/tarima` : ""}</div>
@@ -1248,7 +1311,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
       {ultimoGuardado && (
         <div className="flex items-center gap-2 bg-[#EAF5EC] border border-[#9FD3A6] rounded-lg p-2.5 text-[12px] text-[#1F7A3D]">
           <CheckCircle2 size={14} className="shrink-0" />
-          Guardado: {ultimoGuardado.sku}{ultimoGuardado.nombre ? ` — ${ultimoGuardado.nombre}` : ""} · {ultimoGuardado.tarimas} tarimas
+          Guardado: {ultimoGuardado.sku}{ultimoGuardado.nombre ? ` — ${ultimoGuardado.nombre}` : ""} · {ultimoGuardado.tarimas} {ultimoGuardado.modo === "restos" ? "restos" : "tarimas"}
           {ultimoGuardado.fecha ? ` · ${ultimoGuardado.fecha}` : ""}
           {ultimoGuardado.sinCatalogar ? " · SIN CATÁLOGO" : ""}
         </div>
