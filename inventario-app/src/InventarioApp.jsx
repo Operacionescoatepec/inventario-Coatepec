@@ -157,15 +157,28 @@ function filaSupabaseAEntradaCatalogo(row) {
 }
 
 async function cargarCatalogoDesdeSupabase() {
-  const { data, error } = await supabase
-    .from("catalogo_productos")
-    .select("*")
-    .eq("activo", true)
-    .order("orden", { ascending: true });
+  // OJO: Supabase/PostgREST limita cada consulta a 1000 filas por default.
+  // Con el catálogo ya arriba de 6,000 filas, pedirlo de un jalón se quedaba
+  // corto (se perdían SKUs al azar según dónde cayera el corte). Aquí se
+  // pagina en bloques de 1000 hasta traer todo.
+  const TAMANO_PAGINA = 1000;
+  let data = [];
+  let desde = 0;
+  while (true) {
+    const { data: pagina, error } = await supabase
+      .from("catalogo_productos")
+      .select("*")
+      .eq("activo", true)
+      .order("orden", { ascending: true })
+      .range(desde, desde + TAMANO_PAGINA - 1);
 
-  if (error) {
-    console.error("Error cargando catálogo:", error);
-    return { ok: false, error: error.message };
+    if (error) {
+      console.error("Error cargando catálogo:", error);
+      return { ok: false, error: error.message };
+    }
+    data = data.concat(pagina);
+    if (pagina.length < TAMANO_PAGINA) break; // ya no hay más filas
+    desde += TAMANO_PAGINA;
   }
 
   const catalogoPT = {};
