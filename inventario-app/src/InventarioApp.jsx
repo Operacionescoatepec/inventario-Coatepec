@@ -1657,6 +1657,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
         nombre: info.nombre,
         cantidad: totalPiezasPreview,
         tarimasCompletas: null,
+        tarimasCapturadas: null,
         restos: null,
         factor: null,
         estado,
@@ -1676,6 +1677,9 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
         onAgregar({
           productoId: info.sku, claveCatalogo: clave, nombre: info.nombre,
           cantidad: valor * (factorElegido || 0), tarimasCompletas: valor, restos: null,
+          // tarimas_capturadas = cantidad MANUAL de tarimas (antes de multiplicar por
+          // el armado/factor), para poder auditar sin duplicar el conteo.
+          tarimasCapturadas: valor,
           factor: factorElegido, estado,
         });
       });
@@ -1683,6 +1687,10 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
         onAgregar({
           productoId: info.sku, claveCatalogo: clave, nombre: info.nombre,
           cantidad: valor, tarimasCompletas: null, restos: valor,
+          // Cada resto capturado cuenta como 1 en la columna de tarimas del
+          // reporte (aunque no sea una tarima completa), para poder tallar
+          // renglón por renglón cuántas capturas hubo de este SKU.
+          tarimasCapturadas: 1,
           factor: factorElegido, estado,
         });
       });
@@ -1693,7 +1701,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
       if (cantImp > 0) {
         onAgregar({
           productoId: imp.sku, claveCatalogo: imp.sku, nombre: imp.nombre,
-          cantidad: cantImp, tarimasCompletas: null, restos: null, factor: null, estado: null,
+          cantidad: cantImp, tarimasCompletas: null, tarimasCapturadas: null, restos: null, factor: null, estado: null,
           esImplicito: true, deSku: info.sku,
         });
       }
@@ -1897,6 +1905,26 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
 
   const registrosPorSku = (sku) => escaneos.filter((e) => e.familiaId === familiaId && e.productoId === sku);
 
+  // ---------------------------------------------------------------------
+  // Buscador de SKUs "sin familia" (no vienen en la lista curada de esta
+  // familia, pero pueden aparecer físicamente en piso). Busca solo dentro
+  // del catálogo de retornables sin asignar — no cruza a otras familias
+  // curadas ni a Producto Terminado. Al elegir uno, se captura exactamente
+  // igual (tarimas completas + restos) que el resto de la familia.
+  // ---------------------------------------------------------------------
+  const catalogoSinAsignar = catalogoRetornables[FAMILIA_SIN_ASIGNAR] || {};
+  const [filtroExtra, setFiltroExtra] = useState("");
+  const [clavesExtra, setClavesExtra] = useState([]); // claves agregadas manualmente a esta sesión
+
+  const resultadosExtra = filtroExtra.trim().length >= 2
+    ? Object.entries(catalogoSinAsignar)
+        .filter(([clave, info]) =>
+          !clavesExtra.includes(clave) &&
+          (info.sku.includes(filtroExtra.trim()) || info.nombre.toLowerCase().includes(filtroExtra.trim().toLowerCase()))
+        )
+        .slice(0, 15)
+    : [];
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-[#E2231A] px-1">
@@ -1929,6 +1957,64 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
         ))}
         {entradasFiltradas.length === 0 && (
           <div className="text-center py-10 text-[#6E776A] text-sm">Sin resultados para "{filtro}".</div>
+        )}
+      </div>
+
+      {/* SKUs agregados manualmente para esta ronda de conteo */}
+      {clavesExtra.length > 0 && (
+        <div className="space-y-2.5">
+          {clavesExtra.map((clave) => {
+            const info = catalogoSinAsignar[clave];
+            if (!info) return null;
+            return (
+              <FilaRetornable
+                key={clave}
+                clave={clave}
+                info={info}
+                catalogoFamilia={catalogoSinAsignar}
+                registrosDeEsteSku={registrosPorSku(info.sku)}
+                omitirRestos={omitirRestos}
+                onAgregar={(datos) => onAgregar({ ...datos, familiaId })}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Buscador manual para SKUs que no vienen en la lista curada */}
+      <div className="mt-4 border-t-2 border-dashed border-[#3A3A3A] pt-3 space-y-2">
+        <span className="text-xs font-semibold text-[#8A8A8A]">
+          ¿No encuentras el SKU? Búscalo aquí si tienes inventario de algo fuera de esta lista
+        </span>
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A4A4A]" />
+          <input
+            value={filtroExtra}
+            onChange={(e) => setFiltroExtra(e.target.value)}
+            placeholder="Buscar SKU o nombre en el catálogo general"
+            style={{ color: "#1A1A1A" }}
+            className="w-full bg-[#F2F2F2] border-2 border-[#3A3A3A] rounded-lg pl-9 pr-3 py-2 text-sm placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#E2231A]"
+          />
+        </div>
+        {resultadosExtra.length > 0 && (
+          <div className="space-y-1.5">
+            {resultadosExtra.map(([clave, info]) => (
+              <button
+                key={clave}
+                type="button"
+                onClick={() => { setClavesExtra((prev) => [...prev, clave]); setFiltroExtra(""); }}
+                className="w-full text-left bg-white border border-[#C4C4C4] rounded-lg px-3 py-2 text-xs flex items-center justify-between hover:border-[#E2231A]"
+              >
+                <span className="truncate">
+                  <span className="mono font-bold">{info.sku}</span> — {info.nombre}
+                </span>
+                <span className="text-[#E2231A] font-bold ml-2 shrink-0">+ Agregar</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {filtroExtra.trim().length >= 2 && resultadosExtra.length === 0 && (
+          <div className="text-center py-2 text-[#8A8A8A] text-xs">Sin resultados para "{filtroExtra}".</div>
         )}
       </div>
     </div>
@@ -2597,6 +2683,7 @@ export default function InventarioApp() {
         agrupadorCaducidad: null,
         linea: "—",
         tarimasCompletas: datos.tarimasCompletas,
+        tarimasCapturadas: datos.tarimasCapturadas,
         restos: datos.restos,
         factor: datos.factor,
         estado: datos.estado,
@@ -2981,6 +3068,11 @@ export default function InventarioApp() {
                 nombre: e.nombre || catalogoPorSkuReal[e.productoId]?.nombre || "",
                 cantidad: e.cantidad,
                 tarimas_completas: e.tarimasCompletas ?? null,
+                // Columna real que lee el reporte final (vista_escaneado_export).
+                // CapturaRapidaPT (PT) y FilaRetornable (Retornables) ambos ahora
+                // producen tarimasCapturadas con el mismo significado: cantidad
+                // MANUAL de tarimas, o 1 por cada resto capturado.
+                tarimas_capturadas: e.tarimasCapturadas ?? null,
                 restos: e.restos ?? null,
                 factor: e.factor ?? null,
                 estado: e.estado ?? null,
