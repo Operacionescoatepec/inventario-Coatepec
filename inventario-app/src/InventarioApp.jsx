@@ -284,6 +284,56 @@ function aCajasEquivalentes(cantidad, unidad, cajasXTarima) {
 // ===========================================================================
 const PIN_EXPORTAR = "3133"; // <- cambia este PIN aquí cuando quieras
 
+// Convierte un timestamp UTC (como llega de Supabase) a hora local de
+// Coatepec, Veracruz (America/Mexico_City = UTC-6, sin horario de verano
+// desde la reforma de 2022). Usar Intl con timeZone evita hacer la resta
+// de horas a mano y sigue siendo correcto si algún día cambian las reglas.
+function formatearFechaHoraCoatepec(isoString) {
+  if (!isoString) return null;
+  try {
+    return new Date(isoString).toLocaleString("es-MX", {
+      timeZone: "America/Mexico_City",
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  } catch {
+    return isoString;
+  }
+}
+
+// Alerta reutilizable: consulta el último evento de "borrado_bd" y lo
+// muestra en hora local de Coatepec. Se usa en ambas pantallas de
+// Supervisor (Exportar y Borrar base de datos).
+function AlertaUltimoBorrado() {
+  const [ultimoBorrado, setUltimoBorrado] = useState(undefined); // undefined = cargando, null = nunca se ha borrado
+
+  useEffect(() => {
+    let vigente = true;
+    supabase
+      .from("eventos_sistema")
+      .select("fecha_hora")
+      .eq("tipo", "borrado_bd")
+      .order("fecha_hora", { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => {
+        if (!vigente) return;
+        if (error || !data || data.length === 0) { setUltimoBorrado(null); return; }
+        setUltimoBorrado(data[0].fecha_hora);
+      });
+    return () => { vigente = false; };
+  }, []);
+
+  if (ultimoBorrado === undefined) return null; // aún cargando, no mostrar nada
+  return (
+    <div className="flex items-start gap-2 bg-[#241A0F] border border-[#5A3A1A] rounded-lg p-2.5 text-[11px] text-[#D9B382]">
+      <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+      {ultimoBorrado
+        ? <span>Último borrado de base de datos: <b>{formatearFechaHoraCoatepec(ultimoBorrado)}</b> (hora Coatepec)</span>
+        : <span>La base de datos nunca se ha borrado desde que existe este registro.</span>}
+    </div>
+  );
+}
+
 function csvDesdeFilas(filas) {
   if (!filas || filas.length === 0) return "";
   const columnas = Object.keys(filas[0]);
@@ -369,6 +419,7 @@ function ModalExportar({ onCerrar }) {
 
         {fase === "pin" && (
           <>
+            <AlertaUltimoBorrado />
             <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">PIN de supervisor</label>
             <input
               type="password" inputMode="numeric" value={pin}
@@ -438,6 +489,14 @@ function ModalBorrarBaseDeDatos({ onCerrar }) {
       if (e1) throw e1;
       const { error: e2 } = await supabase.from("sesiones").delete().gte("iniciada_en", "1900-01-01");
       if (e2) throw e2;
+      // Registrar el evento (fecha/hora del borrado) para poder mostrar la
+      // alerta "última vez que se borró" en la pantalla de Supervisor. No
+      // interrumpe el flujo si esto falla — el borrado en sí ya se hizo.
+      try {
+        await supabase.from("eventos_sistema").insert({ tipo: "borrado_bd" });
+      } catch (errEvento) {
+        console.error("No se pudo registrar el evento de borrado:", errEvento);
+      }
       setFase("listo");
     } catch (err) {
       console.error("Error borrando base de datos:", err);
@@ -456,6 +515,7 @@ function ModalBorrarBaseDeDatos({ onCerrar }) {
 
         {fase === "pin" && (
           <>
+            <AlertaUltimoBorrado />
             <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">PIN de supervisor</label>
             <input
               type="password" inputMode="numeric" value={pin}
