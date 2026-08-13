@@ -134,13 +134,21 @@ const FAMILIAS_RETORNABLES = [
   // Pantalla combinada para el inventario mensual al 100% — junta los 5
   // catálogos de arriba en una sola lista, para no tener que salir y
   // entrar a cada familia cuando se cuenta todo el pasillo de una vez.
-  { id: "inventario_total", nombre: "Inventario Total Envase", icon: Boxes, gif: null },
+  { id: "inventario_total", nombre: "Inventario Total", icon: Boxes, gif: null },
 ];
 
 // Filas del catálogo que aún no tienen familia asignada en Supabase (los 294
 // SKUs nuevos migrados) se agrupan aquí para no perderlas de la app.
 const FAMILIA_SIN_ASIGNAR = "sin_asignar";
 const FAMILIA_INVENTARIO_TOTAL = "inventario_total";
+
+// SKUs "principales" — los que normalmente traen más inventario en piso.
+// Se resaltan visualmente (marco + fondo más oscuro) en las tarjetas de
+// captura de Retornables para que salten a la vista antes que el resto.
+const SKUS_PRINCIPALES = new Set([
+  "170460", "170451", "170464", "170450", "170456",
+  "170852", "171733", "170445", "195051",
+]);
 
 function filaSupabaseAEntradaCatalogo(row) {
   return {
@@ -1668,6 +1676,7 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
 // las últimas capturas de ESE SKU, y el total acumulado en la sesión.
 // ===========================================================================
 function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omitirRestos, onAgregar }) {
+  const esPrincipal = SKUS_PRINCIPALES.has(info.sku);
   const [factorElegido, setFactorElegido] = useState(info.factorDefault ?? (info.factores ? info.factores[0] : null));
   const [editandoFactor, setEditandoFactor] = useState(false);
 
@@ -1804,10 +1813,21 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
   };
 
   return (
-    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3 space-y-2.5">
+    <div className={
+      esPrincipal
+        ? "bg-[#D4D4D4] border-2 border-[#1A1A1A] rounded-xl p-3 space-y-2.5"
+        : "bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3 space-y-2.5"
+    }>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="mono text-[11px] text-[#E2231A] font-bold">{info.sku}</div>
+          <div className="flex items-center gap-1.5">
+            <div className="mono text-[11px] text-[#E2231A] font-bold">{info.sku}</div>
+            {esPrincipal && (
+              <span className="text-[9px] font-bold text-white bg-[#1A1A1A] px-1.5 py-0.5 rounded-full tracking-wide">
+                ★ PRINCIPAL
+              </span>
+            )}
+          </div>
           <div className="text-[13px] text-[#1A1A1A] font-medium leading-snug">{info.nombre}</div>
         </div>
         {totalAcumulado > 0 && (
