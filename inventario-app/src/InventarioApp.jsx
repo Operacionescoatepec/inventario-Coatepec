@@ -131,11 +131,16 @@ const FAMILIAS_RETORNABLES = [
   { id: "garrafon", nombre: "Garrafón", icon: ShoppingBag, gif: gifGarrafon },
   { id: "tarimas", nombre: "Tarimas", icon: Layers, gif: gifTarimas },
   { id: "embalaje", nombre: "Embalaje", icon: Box, gif: gifEmbalaje },
+  // Pantalla combinada para el inventario mensual al 100% — junta los 5
+  // catálogos de arriba en una sola lista, para no tener que salir y
+  // entrar a cada familia cuando se cuenta todo el pasillo de una vez.
+  { id: "inventario_total", nombre: "Inventario Total Envase", icon: Boxes, gif: null },
 ];
 
 // Filas del catálogo que aún no tienen familia asignada en Supabase (los 294
 // SKUs nuevos migrados) se agrupan aquí para no perderlas de la app.
 const FAMILIA_SIN_ASIGNAR = "sin_asignar";
+const FAMILIA_INVENTARIO_TOTAL = "inventario_total";
 
 function filaSupabaseAEntradaCatalogo(row) {
   return {
@@ -152,6 +157,14 @@ function filaSupabaseAEntradaCatalogo(row) {
     diasVida: row.dias_vida ?? undefined,
     stockSap: row.stock_sap ?? 0,
     orden: row.orden ?? 0,
+    // Familia real del SKU (ref_pet/vidrio/garrafon/tarimas/embalaje) — se
+    // guarda aparte porque en la pantalla "Inventario Total Envase" varios
+    // SKUs de distintas familias reales se muestran juntos, y cada uno debe
+    // seguir comportándose según SU familia (ej. si pide Restos o no).
+    familiaReal: row.familia || null,
+    // Orden específico de la pantalla combinada (columna nueva, opcional).
+    // Si no está definido, se usa 'orden' normal como respaldo.
+    ordenTotal: row.orden_inventario_total ?? null,
     precioUnitario: row.precio_unitario ?? null,
   };
 }
@@ -183,7 +196,8 @@ async function cargarCatalogoDesdeSupabase() {
 
   const catalogoPT = {};
   const catalogoRetornables = {
-    ref_pet: {}, vidrio: {}, garrafon: {}, tarimas: {}, embalaje: {}, [FAMILIA_SIN_ASIGNAR]: {},
+    ref_pet: {}, vidrio: {}, garrafon: {}, tarimas: {}, embalaje: {},
+    [FAMILIA_SIN_ASIGNAR]: {}, [FAMILIA_INVENTARIO_TOTAL]: {},
   };
 
   for (const row of data) {
@@ -194,6 +208,13 @@ async function cargarCatalogoDesdeSupabase() {
       const familia = row.familia || FAMILIA_SIN_ASIGNAR;
       if (!catalogoRetornables[familia]) catalogoRetornables[familia] = {};
       catalogoRetornables[familia][row.clave_catalogo] = entrada;
+      // Además de su familia real, cada SKU de una de las 5 familias
+      // definidas también entra al catálogo combinado de "Inventario Total
+      // Envase". Los SKUs sin familia asignada NO entran aquí — esos ya se
+      // buscan por separado con el buscador manual.
+      if (familia !== FAMILIA_SIN_ASIGNAR) {
+        catalogoRetornables[FAMILIA_INVENTARIO_TOTAL][row.clave_catalogo] = entrada;
+      }
     }
   }
 
@@ -703,7 +724,9 @@ function PantallaFamilia({ onElegir, onVolver }) {
               className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
             >
               <div className="w-11 h-11 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
-                <img src={f.gif} alt={f.nombre} className="w-9 h-9 object-contain" />
+                {f.gif
+                  ? <img src={f.gif} alt={f.nombre} className="w-9 h-9 object-contain" />
+                  : <f.icon size={22} className="text-[#E2231A]" />}
               </div>
               <div className="flex-1 text-[#1A1A1A] font-bold">{f.nombre}</div>
               <ChevronRight size={20} className="text-[#8A8A8A]" />
@@ -1950,14 +1973,27 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
 // ===========================================================================
 function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgregar }) {
   const familia = FAMILIAS_RETORNABLES.find((f) => f.id === familiaId);
+  const esInventarioTotal = familiaId === FAMILIA_INVENTARIO_TOTAL;
   const catalogoFamilia = catalogoRetornables[familiaId] || {};
   // Object.entries reordena claves que parecen enteros (ej. "170451") de forma
   // numérica ascendente, ignorando el orden de escritura. Por eso cada entrada
   // del catálogo lleva un campo `orden` explícito, y se ordena por ahí.
-  const entradas = Object.entries(catalogoFamilia).sort(([, a], [, b]) => (a.orden ?? 0) - (b.orden ?? 0));
+  // En "Inventario Total Envase" se ordena por 'ordenTotal' (columna aparte,
+  // para no mezclar con el 'orden' de cada familia individual, que se repite
+  // entre familias). Mientras 'ordenTotal' no esté definido, cae a 'orden'.
+  const entradas = Object.entries(catalogoFamilia).sort(([, a], [, b]) => {
+    if (esInventarioTotal) return (a.ordenTotal ?? a.orden ?? 0) - (b.ordenTotal ?? b.orden ?? 0);
+    return (a.orden ?? 0) - (b.orden ?? 0);
+  });
   const [filtro, setFiltro] = useState("");
 
+  // Fuera de "Inventario Total Envase", Restos sí/no depende de la pantalla
+  // (todo lo de Tarimas/Embalaje lo omite). DENTRO de esa pantalla combinada,
+  // cada SKU trae mezcladas varias familias reales, así que se decide por
+  // SKU (info.familiaReal) en vez de por pantalla — ver omitirRestosDe() abajo.
   const omitirRestos = familiaId === "tarimas" || familiaId === "embalaje";
+  const omitirRestosDe = (info) =>
+    esInventarioTotal ? (info.familiaReal === "tarimas" || info.familiaReal === "embalaje") : omitirRestos;
 
   const entradasFiltradas = filtro.trim()
     ? entradas.filter(([, info]) => info.sku.includes(filtro.trim()) || info.nombre.toLowerCase().includes(filtro.trim().toLowerCase()))
@@ -2011,7 +2047,7 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
             info={info}
             catalogoFamilia={catalogoFamilia}
             registrosDeEsteSku={registrosPorSku(info.sku)}
-            omitirRestos={omitirRestos}
+            omitirRestos={omitirRestosDe(info)}
             onAgregar={(datos) => onAgregar({ ...datos, familiaId })}
           />
         ))}
@@ -2033,7 +2069,7 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
                 info={info}
                 catalogoFamilia={catalogoSinAsignar}
                 registrosDeEsteSku={registrosPorSku(info.sku)}
-                omitirRestos={omitirRestos}
+                omitirRestos={omitirRestosDe(info)}
                 onAgregar={(datos) => onAgregar({ ...datos, familiaId })}
               />
             );
