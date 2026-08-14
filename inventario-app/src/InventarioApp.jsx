@@ -3076,14 +3076,9 @@ export default function InventarioApp() {
                 <br />Ve a la pestaña Escanear para empezar.
               </div>
             )}
-            {escaneos.map((e) => (
-              <div key={e.id} className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3.5 flex items-start justify-between gap-3">
-                <EscaneoDetalle e={e} compact catalogo={catalogoActivo} />
-                <button onClick={() => eliminarEscaneo(e.id)} className="text-[#8A8A8A] hover:text-[#E2231A] shrink-0 mt-0.5">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+            {escaneos.length > 0 && (
+              <FiltroRevision escaneos={escaneos} catalogo={catalogoActivo} onEliminar={eliminarEscaneo} />
+            )}
             {escaneos.length > 0 && (
               <button
                 onClick={() => { setUltimoError(null); setMostrarSync(true); }}
@@ -3251,6 +3246,115 @@ export default function InventarioApp() {
       )}
 
       <div ref={liveRegionRef} className="sr-only" role="status" aria-live="polite" />
+    </div>
+  );
+}
+
+// Filtro con autocompletado para la pestaña "Revisar" — escribe SKU o
+// nombre, muestra sugerencias de lo ya capturado en esta sesión, y da un
+// resumen rápido (total sumado + número de registros) para lo que haga
+// match, además de achicar la lista de abajo a solo esos registros.
+function FiltroRevision({ escaneos, catalogo, onEliminar }) {
+  const [filtro, setFiltro] = useState("");
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+
+  const nombreDe = (e) => e.nombre || catalogo?.[e.productoId]?.nombre || "";
+
+  // Sugerencias: SKUs únicos ya capturados en esta sesión que hacen match
+  // por SKU o nombre — no busca en todo el catálogo, solo en lo capturado.
+  const sugerencias = useMemo(() => {
+    if (!filtro.trim()) return [];
+    const q = filtro.trim().toLowerCase();
+    const vistos = new Map();
+    for (const e of escaneos) {
+      if (vistos.has(e.productoId)) continue;
+      const nombre = nombreDe(e);
+      if (e.productoId.toLowerCase().includes(q) || nombre.toLowerCase().includes(q)) {
+        vistos.set(e.productoId, nombre);
+      }
+    }
+    return Array.from(vistos.entries()).slice(0, 8);
+  }, [filtro, escaneos]);
+
+  const escaneosFiltrados = filtro.trim()
+    ? escaneos.filter((e) => e.productoId.toLowerCase().includes(filtro.trim().toLowerCase()) || nombreDe(e).toLowerCase().includes(filtro.trim().toLowerCase()))
+    : escaneos;
+
+  // Resumen: agrupa lo filtrado por SKU — útil sobre todo cuando el filtro
+  // deja varios SKUs parecidos a la vista (ej. buscar "170" trae varios).
+  const resumen = useMemo(() => {
+    if (!filtro.trim()) return [];
+    const grupos = new Map();
+    for (const e of escaneosFiltrados) {
+      const actual = grupos.get(e.productoId) || { sku: e.productoId, nombre: nombreDe(e), total: 0, registros: 0 };
+      actual.total += e.cantidad || 0;
+      actual.registros += 1;
+      grupos.set(e.productoId, actual);
+    }
+    return Array.from(grupos.values());
+  }, [escaneosFiltrados, filtro]);
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A4A4A]" />
+        <input
+          value={filtro}
+          onChange={(e) => { setFiltro(e.target.value); setMostrarSugerencias(true); }}
+          onFocus={() => setMostrarSugerencias(true)}
+          onBlur={() => setTimeout(() => setMostrarSugerencias(false), 150)}
+          placeholder="Filtrar por SKU o nombre — ej. cuánto llevo de este SKU"
+          style={{ color: "#1A1A1A" }}
+          className="w-full bg-white border-2 border-[#1A1A1A] rounded-lg pl-9 pr-3 py-2.5 text-sm placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#E2231A]"
+        />
+        {mostrarSugerencias && sugerencias.length > 0 && (
+          <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border-2 border-[#1A1A1A] rounded-lg overflow-hidden shadow-lg">
+            {sugerencias.map(([sku, nombre]) => (
+              <button
+                key={sku}
+                type="button"
+                onMouseDown={() => { setFiltro(sku); setMostrarSugerencias(false); }}
+                className="w-full text-left px-3 py-2 text-xs border-b border-[#E8E8E8] last:border-0 hover:bg-[#F2F2F2]"
+              >
+                <span className="mono font-bold text-[#E2231A]">{sku}</span>
+                {nombre && <span className="text-[#4A4A4A]"> — {nombre}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {filtro.trim() && (
+        resumen.length > 0 ? (
+          <div className="space-y-1.5">
+            {resumen.map((r) => (
+              <div key={r.sku} className="bg-[#161D14] border border-[#2A332C] rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="mono text-xs font-bold text-[#E2231A]">{r.sku}</span>
+                  <span className="text-xs text-[#C9CFC5] ml-1.5 truncate">{r.nombre}</span>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="mono text-base font-bold text-[#9FD3A6]">{Math.round(r.total)}</div>
+                  <div className="text-[9px] text-[#6E776A] tracking-wide">{r.registros} registro{r.registros !== 1 ? "s" : ""}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4 text-[#6E776A] text-xs">Nada capturado todavía que coincida con "{filtro}".</div>
+        )
+      )}
+
+      <div className="space-y-3">
+        {escaneosFiltrados.map((e) => (
+          <div key={e.id} className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3.5 flex items-start justify-between gap-3">
+            <EscaneoDetalle e={e} compact catalogo={catalogo} />
+            <button onClick={() => onEliminar(e.id)} className="text-[#8A8A8A] hover:text-[#E2231A] shrink-0 mt-0.5">
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
