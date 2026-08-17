@@ -1247,8 +1247,8 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
     else if (campoActivo === "cantidad") setTarimas((s) => s.slice(0, -1));
   };
 
-  const guardarYReiniciar = (valor) => {
-    const valorNum = Number(valor);
+  const guardarBloque = (reiniciarTodo) => {
+    const valorNum = Number(tarimas);
     const armadoNum = Number(armadoManual) || null;
     const esTarimas = modoCantidad === "tarimas";
     const cantidadFinal = esTarimas && armadoNum ? valorNum * armadoNum : valorNum;
@@ -1267,8 +1267,19 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
       fecha: submodo === "tpm" ? formatearFechaParcial(fechaDigitos) : null,
       sinCatalogar: esTarimas && !armadoNum,
     });
-    setSku(""); setFechaDigitos(""); setTarimas(""); setModoCantidad("tarimas");
-    setArmadoManual(""); setEditandoArmado(false); setCampoIdx(0); setAviso(null);
+    if (reiniciarTodo) {
+      // TAB: bloque distinto — reinicia todo, vuelve a pedir SKU y fecha.
+      setSku(""); setFechaDigitos(""); setTarimas(""); setModoCantidad("tarimas");
+      setArmadoManual(""); setEditandoArmado(false); setCampoIdx(0);
+    } else {
+      // Enter: mismo SKU, misma fecha, mismo armado — solo se limpia la
+      // cantidad para capturar otro bloque (ej. 4-5 tarimas seguidas del
+      // mismo producto/fecha con cantidades distintas), sin repetir SKU
+      // y fecha cada vez. Mismo espíritu que "Enter para encolar varias"
+      // en Retornables.
+      setTarimas("");
+    }
+    setAviso(null);
   };
 
   const avanzar = () => {
@@ -1294,8 +1305,26 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
         setEditandoArmado(true);
         return;
       }
-      guardarYReiniciar(tarimas);
+      guardarBloque(true);
     }
+  };
+
+  // Enter: en el paso de Tarimas/Restos, guarda y encola otro bloque del
+  // MISMO SKU y fecha (sin reiniciar). En SKU/Fecha, se comporta como TAB
+  // (no tiene sentido "repetir" ahí).
+  const repetirBloque = () => {
+    if (editandoArmado) { setEditandoArmado(false); return; }
+    if (campoActivo !== "cantidad") { avanzar(); return; }
+    if (!tarimas || Number(tarimas) <= 0) {
+      setAviso(modoCantidad === "tarimas" ? "Captura las tarimas" : "Captura los restos");
+      return;
+    }
+    if (modoCantidad === "tarimas" && !armadoManual) {
+      setAviso("Captura el armado (cajas por tarima) antes de guardar");
+      setEditandoArmado(true);
+      return;
+    }
+    guardarBloque(false);
   };
 
   // Retroceder: solo mueve el foco al campo anterior, sin validar ni borrar
@@ -1398,7 +1427,8 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
                     />
                   ) : (
                     <div
-                      className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
+                      onClick={() => { setAviso(null); setEditandoArmado(false); setCampoIdx(campos.indexOf(c)); }}
+                      className={`w-full rounded-lg px-3 py-3 text-lg font-bold mono cursor-pointer ${activo ? "bg-white border-2 border-[#E2231A]" : "bg-white border border-[#C4C4C4]"}`}
                       style={{ color: info.valor ? "#1A1A1A" : "#8A8A8A" }}
                     >
                       {info.valor || info.placeholder}
@@ -1469,14 +1499,22 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
       <div className={ampliado ? "relative left-1/2 right-1/2 -mx-[50vw] w-screen px-3" : ""}>
         <div className={ampliado ? "bg-[#E8E8E8] rounded-2xl py-4 px-3 max-w-3xl mx-auto" : ""}>
           <div className="grid grid-cols-[auto_1fr] gap-4 pt-1">
-            {/* Columna izquierda: TAB arriba, solo flechas arriba/abajo debajo */}
-            <div className={`grid grid-rows-[auto_1fr_1fr] gap-2 ${ampliado ? "w-28" : "w-20"}`}>
+            {/* Columna izquierda: TAB y Enter arriba, flechas debajo */}
+            <div className={`grid grid-rows-[auto_auto_1fr_1fr] gap-2 ${ampliado ? "w-28" : "w-20"}`}>
               <button
                 onClick={avanzar}
                 className={`rounded-xl bg-[#1A1A1A] text-white font-bold flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform ${ampliado ? "py-4 text-base" : "py-3 text-sm"}`}
               >
                 <span className={ampliado ? "text-3xl leading-none" : "text-2xl leading-none"}>⇥</span>
                 <span>TAB</span>
+              </button>
+              <button
+                onClick={repetirBloque}
+                title="Guarda y repite el mismo SKU/fecha para otro bloque"
+                className={`rounded-xl bg-[#E2231A] text-white font-bold flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform ${ampliado ? "py-4 text-base" : "py-3 text-sm"}`}
+              >
+                <span className={ampliado ? "text-2xl leading-none" : "text-xl leading-none"}>⏎</span>
+                <span>ENTER</span>
               </button>
               <button
                 onClick={retroceder}
