@@ -1205,6 +1205,36 @@ function digitosAFechaISO(digitos) {
   return `20${y}-${m}-${d}`;
 }
 
+// Sonido corto de "clic" para el teclado numérico propio — confirma que sí
+// se registró el toque, útil en planta donde no siempre se ve bien la
+// pantalla. Se genera con Web Audio (sin archivo de audio ni internet, para
+// que funcione igual con mal wifi). Un solo AudioContext reutilizado, y
+// silencioso si el navegador lo bloquea (nunca debe romper la captura).
+let audioCtxTeclado = null;
+function sonidoClicTeclado() {
+  try {
+    if (!audioCtxTeclado) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtxTeclado = new AC();
+    }
+    const ctx = audioCtxTeclado;
+    if (ctx.state === "suspended") ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.value = 1000;
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.045);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.045);
+  } catch (e) {
+    // silencioso a propósito — un fallo de audio nunca debe interrumpir la captura
+  }
+}
+
 function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubicacionSesionLibre, onCambiarUbicacion }) {
   const campos = submodo === "tpm" ? ["sku", "fecha", "cantidad"] : ["sku", "cantidad"];
   const [campoIdx, setCampoIdx] = useState(0);
@@ -1237,6 +1267,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   }, [catalogoPT, sku, campoActivo]);
 
   const escribirDigito = (d) => {
+    sonidoClicTeclado();
     setAviso(null);
     if (editandoArmado) setArmadoManual((s) => (s + d).slice(0, 5));
     else if (campoActivo === "sku") setSku((s) => s + d);
@@ -1245,6 +1276,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   };
 
   const borrar = () => {
+    sonidoClicTeclado();
     setAviso(null);
     if (editandoArmado) setArmadoManual((s) => s.slice(0, -1));
     else if (campoActivo === "sku") setSku((s) => s.slice(0, -1));
@@ -1317,6 +1349,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   };
 
   const avanzar = () => {
+    sonidoClicTeclado();
     if (editandoArmado) { setEditandoArmado(false); return; }
     if (campoActivo === "sku") {
       if (!sku.trim()) { setAviso("Captura el SKU"); return; }
@@ -1338,6 +1371,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   // guarda, no reinicia SKU/fecha). En SKU/Fecha, se comporta como TAB
   // (no tiene sentido "encolar" ahí).
   const repetirBloque = () => {
+    sonidoClicTeclado();
     if (editandoArmado) { setEditandoArmado(false); return; }
     if (campoActivo !== "cantidad") { avanzar(); return; }
     encolarBloque();
@@ -1346,6 +1380,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   // Retroceder: solo mueve el foco al campo anterior, sin validar ni borrar
   // nada — para corregir un campo previo sin tener que reiniciar todo.
   const retroceder = () => {
+    sonidoClicTeclado();
     setAviso(null);
     if (editandoArmado) { setEditandoArmado(false); return; }
     setCampoIdx((i) => Math.max(0, i - 1));
