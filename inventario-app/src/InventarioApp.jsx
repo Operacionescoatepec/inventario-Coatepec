@@ -1211,6 +1211,11 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   const [sku, setSku] = useState("");
   const [fechaDigitos, setFechaDigitos] = useState("");
   const [tarimas, setTarimas] = useState("");
+  // Cola de bloques capturados con ENTER pero aún sin confirmar — igual que
+  // en Retornables: cada Enter encola el valor actual y limpia el campo,
+  // sin guardar todavía ni pedir SKU/fecha de nuevo. "Confirmar bloque"
+  // (TAB) es lo que de verdad guarda todo lo encolado.
+  const [bloquesEnCola, setBloquesEnCola] = useState([]); // [{valor, modo}, ...]
   const [modoCantidad, setModoCantidad] = useState("tarimas"); // "tarimas" | "restos" — predeterminado: tarimas
   const [armadoManual, setArmadoManual] = useState(""); // editable — el del catálogo es solo el punto de partida
   const [editandoArmado, setEditandoArmado] = useState(false);
@@ -1247,39 +1252,68 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
     else if (campoActivo === "cantidad") setTarimas((s) => s.slice(0, -1));
   };
 
-  const guardarBloque = (reiniciarTodo) => {
-    const valorNum = Number(tarimas);
+  // Suma de lo ya encolado + lo que esté tecleado sin encolar todavía, para
+  // la vista previa en vivo (igual que Retornables).
+  const armadoNumPreview = Number(armadoManual) || 0;
+  const totalPreview = bloquesEnCola.reduce((s, b) => s + (b.modo === "tarimas" ? b.valor * armadoNumPreview : b.valor), 0)
+    + (Number(tarimas) > 0 ? (modoCantidad === "tarimas" ? Number(tarimas) * armadoNumPreview : Number(tarimas)) : 0);
+
+  // ENTER: encola el valor actual (con su modo, tarimas o restos) y limpia
+  // el campo para seguir capturando — NO guarda todavía ni pide SKU/fecha
+  // de nuevo. Así se pueden meter 4-5 bloques del mismo SKU/fecha seguidos.
+  const encolarBloque = () => {
+    const v = Number(tarimas);
+    if (!(v > 0)) { setAviso(modoCantidad === "tarimas" ? "Captura las tarimas" : "Captura los restos"); return; }
+    setBloquesEnCola((prev) => [...prev, { valor: v, modo: modoCantidad }]);
+    setTarimas("");
+    setAviso(null);
+  };
+
+  const quitarBloqueEnCola = (i) => setBloquesEnCola((prev) => prev.filter((_, idx) => idx !== i));
+
+  // TAB en el paso de cantidad = "Confirmar bloque": guarda TODO lo
+  // encolado (más lo que quede tecleado sin encolar) como registros
+  // independientes, y hasta entonces reinicia SKU/fecha para el siguiente
+  // producto. Antes de esto, nada se ha guardado en Supabase.
+  const confirmarYReiniciar = () => {
+    const pendiente = Number(tarimas) > 0 ? [...bloquesEnCola, { valor: Number(tarimas), modo: modoCantidad }] : bloquesEnCola;
+    if (pendiente.length === 0) {
+      setAviso(modoCantidad === "tarimas" ? "Captura las tarimas" : "Captura los restos");
+      return;
+    }
+    const hayTarimas = pendiente.some((b) => b.modo === "tarimas");
     const armadoNum = Number(armadoManual) || null;
-    const esTarimas = modoCantidad === "tarimas";
-    const cantidadFinal = esTarimas && armadoNum ? valorNum * armadoNum : valorNum;
-    onAgregar({
-      productoId: sku.trim(),
-      cantidad: cantidadFinal,
-      unidad: esTarimas ? "tarimas" : "piezas",
-      cajasXTarima: esTarimas ? armadoNum : null,
-      tarimasCapturadas: esTarimas ? valorNum : null,
-      ubicacion: ubicacionSesion === "Otros" ? (ubicacionSesionLibre.trim() || "Otros") : ubicacionSesion,
-      agrupadorCaducidad: submodo === "tpm" ? digitosAFechaISO(fechaDigitos) : null,
-      esManual: true,
+    if (hayTarimas && !armadoNum) {
+      setAviso("Captura el armado (cajas por tarima) antes de guardar");
+      setEditandoArmado(true);
+      return;
+    }
+    const ubicacionFinal = ubicacionSesion === "Otros" ? (ubicacionSesionLibre.trim() || "Otros") : ubicacionSesion;
+    const fechaFinal = submodo === "tpm" ? digitosAFechaISO(fechaDigitos) : null;
+    let totalGuardado = 0;
+    pendiente.forEach((b) => {
+      const esTarimas = b.modo === "tarimas";
+      const cantidadFinal = esTarimas && armadoNum ? b.valor * armadoNum : b.valor;
+      totalGuardado += cantidadFinal;
+      onAgregar({
+        productoId: sku.trim(),
+        cantidad: cantidadFinal,
+        unidad: esTarimas ? "tarimas" : "piezas",
+        cajasXTarima: esTarimas ? armadoNum : null,
+        tarimasCapturadas: esTarimas ? b.valor : null,
+        ubicacion: ubicacionFinal,
+        agrupadorCaducidad: fechaFinal,
+        esManual: true,
+      });
     });
     setUltimoGuardado({
-      sku: sku.trim(), nombre: skuInfo?.nombre || null, tarimas: valor, modo: modoCantidad,
+      sku: sku.trim(), nombre: skuInfo?.nombre || null, tarimas: totalGuardado, modo: pendiente.length > 1 ? "bloques" : pendiente[0].modo,
       fecha: submodo === "tpm" ? formatearFechaParcial(fechaDigitos) : null,
-      sinCatalogar: esTarimas && !armadoNum,
+      sinCatalogar: hayTarimas && !armadoNum,
+      nBloques: pendiente.length,
     });
-    if (reiniciarTodo) {
-      // TAB: bloque distinto — reinicia todo, vuelve a pedir SKU y fecha.
-      setSku(""); setFechaDigitos(""); setTarimas(""); setModoCantidad("tarimas");
-      setArmadoManual(""); setEditandoArmado(false); setCampoIdx(0);
-    } else {
-      // Enter: mismo SKU, misma fecha, mismo armado — solo se limpia la
-      // cantidad para capturar otro bloque (ej. 4-5 tarimas seguidas del
-      // mismo producto/fecha con cantidades distintas), sin repetir SKU
-      // y fecha cada vez. Mismo espíritu que "Enter para encolar varias"
-      // en Retornables.
-      setTarimas("");
-    }
-    setAviso(null);
+    setSku(""); setFechaDigitos(""); setTarimas(""); setBloquesEnCola([]); setModoCantidad("tarimas");
+    setArmadoManual(""); setEditandoArmado(false); setCampoIdx(0); setAviso(null);
   };
 
   const avanzar = () => {
@@ -1296,35 +1330,17 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
       if (!digitosAFechaISO(fechaDigitos)) { setAviso("Fecha inválida"); return; }
       setCampoIdx((i) => i + 1);
     } else if (campoActivo === "cantidad") {
-      if (!tarimas || Number(tarimas) <= 0) {
-        setAviso(modoCantidad === "tarimas" ? "Captura las tarimas" : "Captura los restos");
-        return;
-      }
-      if (modoCantidad === "tarimas" && !armadoManual) {
-        setAviso("Captura el armado (cajas por tarima) antes de guardar");
-        setEditandoArmado(true);
-        return;
-      }
-      guardarBloque(true);
+      confirmarYReiniciar();
     }
   };
 
-  // Enter: en el paso de Tarimas/Restos, guarda y encola otro bloque del
-  // MISMO SKU y fecha (sin reiniciar). En SKU/Fecha, se comporta como TAB
-  // (no tiene sentido "repetir" ahí).
+  // Enter: en el paso de Tarimas/Restos, ENCOLA el bloque actual (no
+  // guarda, no reinicia SKU/fecha). En SKU/Fecha, se comporta como TAB
+  // (no tiene sentido "encolar" ahí).
   const repetirBloque = () => {
     if (editandoArmado) { setEditandoArmado(false); return; }
     if (campoActivo !== "cantidad") { avanzar(); return; }
-    if (!tarimas || Number(tarimas) <= 0) {
-      setAviso(modoCantidad === "tarimas" ? "Captura las tarimas" : "Captura los restos");
-      return;
-    }
-    if (modoCantidad === "tarimas" && !armadoManual) {
-      setAviso("Captura el armado (cajas por tarima) antes de guardar");
-      setEditandoArmado(true);
-      return;
-    }
-    guardarBloque(false);
+    encolarBloque();
   };
 
   // Retroceder: solo mueve el foco al campo anterior, sin validar ni borrar
@@ -1456,6 +1472,29 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
                   ))}
                 </div>
               )}
+              {/* Bloques encolados con Enter — todavía sin guardar. Tocar un
+                  chip lo quita de la cola. */}
+              {c === "cantidad" && !editandoArmado && bloquesEnCola.length > 0 && (
+                <div className="flex gap-1 mt-1.5 flex-wrap">
+                  {bloquesEnCola.map((b, i) => (
+                    <button
+                      key={i}
+                      onClick={() => quitarBloqueEnCola(i)}
+                      className="mono text-[11px] bg-[#1A1A1A] text-[#9FD3A6] rounded px-2 py-1 flex items-center gap-1"
+                    >
+                      {b.valor}{b.modo === "restos" ? "r" : ""} <X size={9} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* Vista previa en vivo del total (encolado + lo que esté
+                  tecleado sin encolar) — nada de esto está guardado todavía. */}
+              {c === "cantidad" && !editandoArmado && (bloquesEnCola.length > 0 || Number(tarimas) > 0) && (
+                <div className="mt-1.5 text-[12px] mono bg-[#161D14] text-[#9FD3A6] rounded-lg px-2.5 py-2 font-medium">
+                  = <span className="font-bold">{Math.round(totalPreview)} piezas</span>
+                  {bloquesEnCola.length > 0 && <span className="text-[#6E776A]"> · {bloquesEnCola.length} bloque{bloquesEnCola.length !== 1 ? "s" : ""} en cola</span>}
+                </div>
+              )}
             </div>
           );
         })}
@@ -1470,7 +1509,8 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
       {ultimoGuardado && (
         <div className="flex items-center gap-2 bg-[#EAF5EC] border border-[#9FD3A6] rounded-lg p-2.5 text-[12px] text-[#1F7A3D]">
           <CheckCircle2 size={14} className="shrink-0" />
-          Guardado: {ultimoGuardado.sku}{ultimoGuardado.nombre ? ` — ${ultimoGuardado.nombre}` : ""} · {ultimoGuardado.tarimas} {ultimoGuardado.modo === "restos" ? "restos" : "tarimas"}
+          Guardado: {ultimoGuardado.sku}{ultimoGuardado.nombre ? ` — ${ultimoGuardado.nombre}` : ""} · {Math.round(ultimoGuardado.tarimas)} piezas
+          {ultimoGuardado.nBloques > 1 ? ` (${ultimoGuardado.nBloques} bloques)` : ""}
           {ultimoGuardado.fecha ? ` · ${ultimoGuardado.fecha}` : ""}
           {ultimoGuardado.sinCatalogar ? " · SIN CATÁLOGO" : ""}
         </div>
@@ -1510,7 +1550,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
               </button>
               <button
                 onClick={repetirBloque}
-                title="Guarda y repite el mismo SKU/fecha para otro bloque"
+                title="Encola este bloque (sin guardar todavía) para seguir capturando el mismo SKU/fecha"
                 className={`rounded-xl bg-[#E2231A] text-white font-bold flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform ${ampliado ? "py-4 text-base" : "py-3 text-sm"}`}
               >
                 <span className={ampliado ? "text-2xl leading-none" : "text-xl leading-none"}>⏎</span>
