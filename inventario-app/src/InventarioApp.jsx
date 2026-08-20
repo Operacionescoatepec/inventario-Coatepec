@@ -2196,20 +2196,20 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
   return (
     <div className="relative space-y-3">
       {esInventarioTotal && (
-        <div className="fixed left-2 top-32 z-30 flex flex-col gap-2.5 w-20">
+        <div className="fixed left-2 bottom-4 z-40 flex flex-col gap-2 w-16">
           {atajosInventarioTotal.map((a) => (
             <button
               key={a.label}
               onClick={() => irASku(a.sku)}
               disabled={!a.sku}
-              className="bg-[#E2231A] disabled:bg-[#5A5A5A] disabled:opacity-50 text-white font-extrabold text-[11px] leading-tight rounded-xl py-3 px-1 text-center shadow-lg active:scale-[0.96] transition-transform"
+              className="bg-[#E2231A] disabled:bg-[#5A5A5A] disabled:opacity-50 text-white font-extrabold text-[10px] leading-tight rounded-xl py-2.5 px-1 text-center shadow-lg active:scale-[0.96] transition-transform"
             >
               {a.label}
             </button>
           ))}
         </div>
       )}
-      <div className={esInventarioTotal ? "pl-24" : ""}>
+      <div className={esInventarioTotal ? "pl-20" : ""}>
       <div className="flex items-center gap-2 text-[#E2231A] px-1">
         {familia && <familia.icon size={18} />}
         <span className="text-sm font-bold" style={{ color: "#E2231A" }}>{familia?.nombre}</span>
