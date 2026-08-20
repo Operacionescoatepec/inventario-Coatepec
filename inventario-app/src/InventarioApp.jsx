@@ -1788,7 +1788,7 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
 // Cada fila mantiene su propio estado de tarima/restos, muestra historial de
 // las últimas capturas de ESE SKU, y el total acumulado en la sesión.
 // ===========================================================================
-function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omitirRestos, onAgregar }) {
+function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omitirRestos, onAgregar, anchorId }) {
   const esPrincipal = SKUS_PRINCIPALES.has(info.sku);
   const [factorElegido, setFactorElegido] = useState(info.factorDefault ?? (info.factores ? info.factores[0] : null));
   const [editandoFactor, setEditandoFactor] = useState(false);
@@ -1926,11 +1926,14 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
   };
 
   return (
-    <div className={
-      esPrincipal
-        ? "bg-[#D4D4D4] border-2 border-[#1A1A1A] rounded-xl p-3 space-y-2.5"
-        : "bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3 space-y-2.5"
-    }>
+    <div
+      id={anchorId}
+      className={
+        esPrincipal
+          ? "bg-[#D4D4D4] border-2 border-[#1A1A1A] rounded-xl p-3 space-y-2.5"
+          : "bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3 space-y-2.5"
+      }
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
@@ -2154,8 +2157,52 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
         .slice(0, 15)
     : [];
 
+  // ---------------------------------------------------------------------
+  // Atajos de "Inventario Total": botones fijos a la izquierda que hacen
+  // scroll directo al primer SKU de cada familia (más un ancla fija extra,
+  // "24 CV", que no es una familia sino un SKU puntual). El primer SKU de
+  // cada familia se calcula del orden real (no está hardcodeado), así que
+  // si el orden curado cambia más adelante, los atajos lo siguen.
+  // ---------------------------------------------------------------------
+  const primerSkuPorFamilia = {};
+  if (esInventarioTotal) {
+    for (const [, info] of entradas) {
+      if (info.familiaReal && !primerSkuPorFamilia[info.familiaReal]) {
+        primerSkuPorFamilia[info.familiaReal] = info.sku;
+      }
+    }
+  }
+  const atajosInventarioTotal = [
+    { label: "REFPET", sku: primerSkuPorFamilia["ref_pet"] },
+    { label: "VIDRIO", sku: primerSkuPorFamilia["vidrio"] },
+    { label: "24 CV", sku: "170456" }, // ancla fija a un SKU puntual, no a una familia
+    { label: "GARRAFON", sku: primerSkuPorFamilia["garrafon"] },
+    { label: "TARIMA", sku: primerSkuPorFamilia["tarimas"] },
+    { label: "EMBALAJE", sku: primerSkuPorFamilia["embalaje"] },
+  ];
+  const irASku = (skuObjetivo) => {
+    if (!skuObjetivo) return;
+    const el = document.getElementById(`sku-anchor-${skuObjetivo}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
-    <div className="space-y-3">
+    <div className="relative space-y-3">
+      {esInventarioTotal && (
+        <div className="fixed left-2 top-32 z-30 flex flex-col gap-2.5 w-20">
+          {atajosInventarioTotal.map((a) => (
+            <button
+              key={a.label}
+              onClick={() => irASku(a.sku)}
+              disabled={!a.sku}
+              className="bg-[#E2231A] disabled:bg-[#5A5A5A] disabled:opacity-50 text-white font-extrabold text-[11px] leading-tight rounded-xl py-3 px-1 text-center shadow-lg active:scale-[0.96] transition-transform"
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className={esInventarioTotal ? "pl-24" : ""}>
       <div className="flex items-center gap-2 text-[#E2231A] px-1">
         {familia && <familia.icon size={18} />}
         <span className="text-sm font-bold" style={{ color: "#E2231A" }}>{familia?.nombre}</span>
@@ -2178,6 +2225,7 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
             key={clave}
             clave={clave}
             info={info}
+            anchorId={`sku-anchor-${info.sku}`}
             catalogoFamilia={catalogoFamilia}
             registrosDeEsteSku={registrosPorSku(info.sku)}
             omitirRestos={omitirRestosDe(info)}
@@ -2245,6 +2293,7 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
         {filtroExtra.trim().length >= 2 && resultadosExtra.length === 0 && (
           <div className="text-center py-2 text-[#8A8A8A] text-xs">Sin resultados para "{filtroExtra}".</div>
         )}
+      </div>
       </div>
     </div>
   );
