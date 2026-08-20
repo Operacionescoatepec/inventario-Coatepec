@@ -2183,7 +2183,14 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
   const irASku = (skuObjetivo) => {
     if (!skuObjetivo) return;
     const el = document.getElementById(`sku-anchor-${skuObjetivo}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!el) return;
+    // scrollIntoView por sí solo deja la tarjeta tapada detrás del
+    // encabezado + pestañas (ambos "sticky" arriba, ~113px combinados) —
+    // por eso se veía como si brincara a la SIGUIENTE tarjeta en vez de a
+    // la correcta. Se calcula la posición a mano y se le resta esa altura.
+    const ALTURA_STICKY = 130;
+    const y = el.getBoundingClientRect().top + window.scrollY - ALTURA_STICKY;
+    window.scrollTo({ top: y, behavior: "smooth" });
   };
 
   return (
