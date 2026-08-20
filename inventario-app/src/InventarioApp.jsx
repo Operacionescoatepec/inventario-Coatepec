@@ -2196,7 +2196,7 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
   return (
     <div className="relative space-y-3">
       {esInventarioTotal && (
-        <div className="fixed left-2 bottom-4 z-40 flex flex-col gap-2 w-16">
+        <div className="fixed left-2 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 w-16">
           {atajosInventarioTotal.map((a) => (
             <button
               key={a.label}
