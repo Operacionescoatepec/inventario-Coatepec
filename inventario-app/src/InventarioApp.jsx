@@ -1523,11 +1523,24 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
                 </div>
               )}
               {/* Vista previa en vivo del total (encolado + lo que esté
-                  tecleado sin encolar) — nada de esto está guardado todavía. */}
-              {c === "cantidad" && !editandoArmado && (bloquesEnCola.length > 0 || Number(tarimas) > 0) && (
-                <div className="mt-1.5 text-[12px] mono bg-[#161D14] text-[#9FD3A6] rounded-lg px-2.5 py-2 font-medium">
-                  = <span className="font-bold">{Math.round(totalPreview)} piezas</span>
-                  {bloquesEnCola.length > 0 && <span className="text-[#6E776A]"> · {bloquesEnCola.length} bloque{bloquesEnCola.length !== 1 ? "s" : ""} en cola</span>}
+                  tecleado sin encolar) — nada de esto está guardado todavía.
+                  OJO: este bloque se queda SIEMPRE montado (con altura fija)
+                  aunque no haya nada que mostrar. Antes solo aparecía al
+                  teclear el primer dígito, y como el teclado numérico va
+                  justo debajo en el flujo normal de la página, ese salto
+                  empujaba el teclado hacia abajo A MITAD de la captura —
+                  quien iba a teclear "20" terminaba con "22" porque el
+                  segundo toque caía en un botón que ya se había movido.
+                  Con altura reservada de forma permanente, el teclado ya
+                  no se mueve mientras se teclea. */}
+              {c === "cantidad" && (
+                <div className="mt-1.5 min-h-[34px]">
+                  {!editandoArmado && (bloquesEnCola.length > 0 || Number(tarimas) > 0) && (
+                    <div className="text-[12px] mono bg-[#161D14] text-[#9FD3A6] rounded-lg px-2.5 py-2 font-medium">
+                      = <span className="font-bold">{Math.round(totalPreview)} piezas</span>
+                      {bloquesEnCola.length > 0 && <span className="text-[#6E776A]"> · {bloquesEnCola.length} bloque{bloquesEnCola.length !== 1 ? "s" : ""} en cola</span>}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
