@@ -632,13 +632,13 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
 
         <button
           onClick={() => onElegirModulo("producto_terminado")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/10 flex items-center justify-center shrink-0 overflow-hidden shadow-[inset_0_0_0_1px_rgba(226,35,26,0.12)]">
             <img src={gifProductoTerminado} alt="Producto Terminado" className="w-10 h-10 object-contain" />
           </div>
           <div className="flex-1">
-            <div className="text-[#1A1A1A] font-bold text-base">Producto Terminado</div>
+            <div className="text-[#1A1A1A] font-extrabold text-base tracking-tight">Producto Terminado</div>
             <div className="text-[#4A4A4A] text-xs mt-0.5">TPM con fechas, o físico vs. teórico</div>
           </div>
           <ChevronRight size={20} className="text-[#8A8A8A]" />
@@ -646,13 +646,13 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
 
         <button
           onClick={() => onElegirModulo("retornable")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-12 h-12 rounded-xl bg-[#E2231A]/10 flex items-center justify-center shrink-0 overflow-hidden shadow-[inset_0_0_0_1px_rgba(226,35,26,0.12)]">
             <img src={gifMaterialesRetornables} alt="Materiales Retornables" className="w-10 h-10 object-contain" />
           </div>
           <div className="flex-1">
-            <div className="text-[#1A1A1A] font-bold text-base">Materiales Retornables</div>
+            <div className="text-[#1A1A1A] font-extrabold text-base tracking-tight">Materiales Retornables</div>
             <div className="text-[#4A4A4A] text-xs mt-0.5">Vidrio, Ref PET, Tarimas, Garrafón, Embalaje</div>
           </div>
           <ChevronRight size={20} className="text-[#8A8A8A]" />
@@ -687,7 +687,7 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
         <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿CON QUÉ MODALIDAD?</div>
         <button
           onClick={() => onElegir("tpm")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+          className="w-full bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
             <img src={gifTpmFechas} alt="" className="w-6 h-6 object-contain" />
@@ -699,7 +699,7 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
         </button>
         <button
           onClick={() => onElegir("sin_fechas")}
-          className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+          className="w-full bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 text-left active:scale-[0.98] transition-transform"
         >
           <div className="flex items-center gap-2 mb-1">
             <img src={gifSinFechas} alt="" className="w-6 h-6 object-contain" />
@@ -729,14 +729,14 @@ function PantallaFamilia({ onElegir, onVolver }) {
             <button
               key={f.id}
               onClick={() => onElegir(f.id)}
-              className="w-full bg-[#E8E8E8] border border-[#C4C4C4] rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
             >
-              <div className="w-11 h-11 rounded-xl bg-[#E2231A]/15 flex items-center justify-center shrink-0 overflow-hidden">
+              <div className="w-11 h-11 rounded-xl bg-[#E2231A]/10 flex items-center justify-center shrink-0 overflow-hidden shadow-[inset_0_0_0_1px_rgba(226,35,26,0.12)]">
                 {f.gif
                   ? <img src={f.gif} alt={f.nombre} className="w-9 h-9 object-contain" />
                   : <f.icon size={22} className="text-[#E2231A]" />}
               </div>
-              <div className="flex-1 text-[#1A1A1A] font-bold">{f.nombre}</div>
+              <div className="flex-1 text-[#1A1A1A] font-extrabold tracking-tight">{f.nombre}</div>
               <ChevronRight size={20} className="text-[#8A8A8A]" />
             </button>
           ))}
@@ -757,7 +757,7 @@ function BarraSuperiorSimple({ titulo, onVolver }) {
       </button>
       <div>
         <div className="text-[10px] text-[#6E776A] tracking-wide">{PLANTA.toUpperCase()}</div>
-        <div className="text-[#EDEAE2] font-bold text-sm">{titulo}</div>
+        <div className="text-[#EDEAE2] font-extrabold text-sm tracking-tight">{titulo}</div>
       </div>
     </header>
   );
@@ -1405,7 +1405,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
   };
 
   return (
-    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-4 space-y-3">
+    <div className="bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[#E2231A]">
           <PenLine size={16} />
@@ -1698,7 +1698,7 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
   };
 
   return (
-    <div className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-4 space-y-4">
+    <div className="bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 space-y-4">
       <div className="flex items-center gap-2 text-[#E2231A]">
         <PenLine size={16} />
         <span className="text-sm font-bold" style={{ color: "#E2231A" }}>Captura sin etiqueta</span>
@@ -1943,8 +1943,8 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
       id={anchorId}
       className={
         esPrincipal
-          ? "bg-[#D4D4D4] border-2 border-[#1A1A1A] rounded-xl p-3 space-y-2.5"
-          : "bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3 space-y-2.5"
+          ? "bg-white border-2 border-[#1A1A1A] rounded-2xl shadow-[0_4px_18px_rgba(0,0,0,0.14)] p-3 space-y-2.5"
+          : "bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-3 space-y-2.5"
       }
     >
       <div className="flex items-start justify-between gap-2">
@@ -3097,15 +3097,15 @@ export default function InventarioApp() {
           <button onClick={() => setPantalla(modulo === "producto_terminado" ? "submodo_pt" : "familia_retornable")} style={{ color: "#FFFFFF" }}>
             <ChevronLeft size={20} />
           </button>
-          <div className="w-8 h-8 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: "#FFFFFF" }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-[0_2px_6px_rgba(0,0,0,0.18)]" style={{ backgroundColor: "#FFFFFF" }}>
             <Package size={18} style={{ color: "#E2231A" }} />
           </div>
           <div>
-            <div className="font-bold text-sm leading-tight tracking-wide" style={{ color: "#FFFFFF" }}>{tituloModulo}</div>
+            <div className="font-extrabold text-sm leading-tight tracking-wide" style={{ color: "#FFFFFF" }}>{tituloModulo}</div>
             <div className="text-[10px] leading-tight" style={{ color: "#FFD9D5" }}>{PLANTA}</div>
           </div>
         </div>
-        <div className="mono text-xs px-2.5 py-1 rounded shrink-0" style={{ backgroundColor: "#FFFFFF", color: "#E2231A" }}>
+        <div className="mono text-xs font-bold px-2.5 py-1 rounded-full shrink-0 shadow-[0_2px_6px_rgba(0,0,0,0.18)]" style={{ backgroundColor: "#FFFFFF", color: "#E2231A" }}>
           {escaneos.length}
         </div>
       </header>
@@ -3529,7 +3529,7 @@ function FiltroRevision({ escaneos, catalogo, onEliminar }) {
 
       <div className="space-y-3">
         {escaneosFiltrados.map((e) => (
-          <div key={e.id} className="bg-[#E8E8E8] border border-[#C4C4C4] rounded-xl p-3.5 flex items-start justify-between gap-3">
+          <div key={e.id} className="bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-3.5 flex items-start justify-between gap-3">
             <EscaneoDetalle e={e} compact catalogo={catalogo} />
             <button onClick={() => onEliminar(e.id)} className="text-[#8A8A8A] hover:text-[#E2231A] shrink-0 mt-0.5">
               <Trash2 size={16} />
