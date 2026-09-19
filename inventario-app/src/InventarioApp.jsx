@@ -440,25 +440,25 @@ function ModalExportar({ onCerrar }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-[#161D14] border border-[#2A332C] rounded-2xl w-full max-w-xs p-5 space-y-4">
+      <div className="bg-white border border-[#C4C4C4] rounded-2xl w-full max-w-xs p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-[#EDEAE2] font-bold">Exportar reporte</div>
-          <button onClick={onCerrar} className="text-[#6E776A] hover:text-[#EDEAE2]"><X size={20} /></button>
+          <div className="text-[#1A1A1A] font-bold">Exportar reporte</div>
+          <button onClick={onCerrar} className="text-[#6E6E6E] hover:text-[#1A1A1A]"><X size={20} /></button>
         </div>
 
         {fase === "pin" && (
           <>
             <AlertaUltimoBorrado />
-            <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">PIN de supervisor</label>
+            <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">PIN de supervisor</label>
             <input
               type="password" inputMode="numeric" value={pin}
               onChange={(e) => setPin(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && validarYExportar()}
-              style={{ color: "#EDEAE2" }}
-              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-lg text-center tracking-[0.4em] focus:outline-none focus:border-[#E2231A]"
+              style={{ color: "#1A1A1A" }}
+              className="w-full mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg px-3 py-3 text-lg text-center tracking-[0.4em] focus:outline-none focus:border-[#E2231A]"
               autoFocus
             />
-            {errorMsg && <div className="text-[11px] text-[#E8A8A8]">{errorMsg}</div>}
+            {errorMsg && <div className="text-[11px] text-[#B3261E]">{errorMsg}</div>}
             <button onClick={validarYExportar} className="w-full bg-[#E2231A] text-white font-bold py-3 rounded-xl">
               Exportar catálogo + escaneado
             </button>
@@ -467,18 +467,18 @@ function ModalExportar({ onCerrar }) {
 
         {fase === "exportando" && (
           <div className="flex flex-col items-center gap-3 py-4">
-            <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#2A332C", borderTopColor: "#E2231A" }} />
-            <div className="text-sm" style={{ color: "#8A9389" }}>Exportando desde Supabase…</div>
+            <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#C4C4C4", borderTopColor: "#E2231A" }} />
+            <div className="text-sm" style={{ color: "#4A4A4A" }}>Exportando desde Supabase…</div>
           </div>
         )}
 
         {fase === "listo" && (
           <div className="flex flex-col items-center gap-3 py-4">
-            <CheckCircle2 size={32} className="text-[#9FD3A6]" />
-            <div className="text-sm text-center" style={{ color: "#EDEAE2" }}>
+            <CheckCircle2 size={32} className="text-[#1F7A3D]" />
+            <div className="text-sm text-center" style={{ color: "#1A1A1A" }}>
               Listo — se descargaron 2 archivos (catálogo y escaneado) a tu carpeta de descargas.
             </div>
-            <button onClick={onCerrar} className="w-full bg-[#1B2119] border border-[#2A332C] text-[#EDEAE2] font-medium py-2.5 rounded-xl">
+            <button onClick={onCerrar} className="w-full bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] font-medium py-2.5 rounded-xl">
               Cerrar
             </button>
           </div>
@@ -536,26 +536,26 @@ function ModalBorrarBaseDeDatos({ onCerrar }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-[#161D14] border border-[#5A2A2A] rounded-2xl w-full max-w-xs p-5 space-y-4">
+      <div className="bg-white border border-[#E8A8A8] rounded-2xl w-full max-w-xs p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-[#E8A8A8] font-bold">Borrar base de datos</div>
-          <button onClick={onCerrar} className="text-[#6E776A] hover:text-[#EDEAE2]"><X size={20} /></button>
+          <div className="text-[#B3261E] font-bold">Borrar base de datos</div>
+          <button onClick={onCerrar} className="text-[#6E6E6E] hover:text-[#1A1A1A]"><X size={20} /></button>
         </div>
 
         {fase === "pin" && (
           <>
             <AlertaUltimoBorrado />
-            <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">PIN de supervisor</label>
+            <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">PIN de supervisor</label>
             <input
               type="password" inputMode="numeric" value={pin}
               onChange={(e) => setPin(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && validarPin()}
-              style={{ color: "#EDEAE2" }}
-              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-lg text-center tracking-[0.4em] focus:outline-none focus:border-[#E2231A]"
+              style={{ color: "#1A1A1A" }}
+              className="w-full mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg px-3 py-3 text-lg text-center tracking-[0.4em] focus:outline-none focus:border-[#E2231A]"
               autoFocus
             />
-            {errorMsg && <div className="text-[11px] text-[#E8A8A8]">{errorMsg}</div>}
-            <button onClick={validarPin} className="w-full bg-[#1B2119] border border-[#5A2A2A] text-[#E8A8A8] font-bold py-3 rounded-xl">
+            {errorMsg && <div className="text-[11px] text-[#B3261E]">{errorMsg}</div>}
+            <button onClick={validarPin} className="w-full bg-[#F0F0F0] border border-[#E8A8A8] text-[#B3261E] font-bold py-3 rounded-xl">
               Continuar
             </button>
           </>
@@ -563,21 +563,21 @@ function ModalBorrarBaseDeDatos({ onCerrar }) {
 
         {fase === "confirmar" && (
           <>
-            <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-[12px] text-[#E8A8A8]">
+            <div className="flex items-start gap-2 bg-[#FBE9E7] border border-[#E8A8A8] rounded-lg p-3 text-[12px] text-[#B3261E]">
               <AlertTriangle size={16} className="mt-0.5 shrink-0" />
               Esto borra TODOS los conteos y sesiones de Supabase (de cualquier fecha o planta) — no se puede deshacer. Úsalo solo para limpiar datos de prueba antes de un conteo real.
             </div>
-            <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">
-              Escribe <span className="mono text-[#E8A8A8]">BORRAR</span> para confirmar
+            <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">
+              Escribe <span className="mono text-[#B3261E]">BORRAR</span> para confirmar
             </label>
             <input
               type="text" value={textoConfirmacion}
               onChange={(e) => setTextoConfirmacion(e.target.value)}
-              style={{ color: "#EDEAE2" }}
-              className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-center tracking-widest focus:outline-none focus:border-[#E2231A]"
+              style={{ color: "#1A1A1A" }}
+              className="w-full mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg px-3 py-3 text-center tracking-widest focus:outline-none focus:border-[#E2231A]"
               autoFocus
             />
-            {errorMsg && <div className="text-[11px] text-[#E8A8A8]">{errorMsg}</div>}
+            {errorMsg && <div className="text-[11px] text-[#B3261E]">{errorMsg}</div>}
             <button
               onClick={borrarTodo}
               disabled={textoConfirmacion.trim().toUpperCase() !== "BORRAR"}
@@ -590,18 +590,18 @@ function ModalBorrarBaseDeDatos({ onCerrar }) {
 
         {fase === "borrando" && (
           <div className="flex flex-col items-center gap-3 py-4">
-            <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#2A332C", borderTopColor: "#E2231A" }} />
-            <div className="text-sm" style={{ color: "#8A9389" }}>Borrando en Supabase…</div>
+            <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#C4C4C4", borderTopColor: "#E2231A" }} />
+            <div className="text-sm" style={{ color: "#4A4A4A" }}>Borrando en Supabase…</div>
           </div>
         )}
 
         {fase === "listo" && (
           <div className="flex flex-col items-center gap-3 py-4">
-            <CheckCircle2 size={32} className="text-[#9FD3A6]" />
-            <div className="text-sm text-center" style={{ color: "#EDEAE2" }}>
+            <CheckCircle2 size={32} className="text-[#1F7A3D]" />
+            <div className="text-sm text-center" style={{ color: "#1A1A1A" }}>
               Listo — la base de datos quedó vacía, lista para un conteo nuevo.
             </div>
-            <button onClick={onCerrar} className="w-full bg-[#1B2119] border border-[#2A332C] text-[#EDEAE2] font-medium py-2.5 rounded-xl">
+            <button onClick={onCerrar} className="w-full bg-[#F0F0F0] border border-[#C4C4C4] text-[#1A1A1A] font-medium py-2.5 rounded-xl">
               Cerrar
             </button>
           </div>
@@ -627,8 +627,8 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
         aria-label={`Inventario Digital — ${PLANTA}`}
       />
 
-      <div className="flex-1 bg-[#0E1410] rounded-t-[28px] px-5 pt-7 pb-10 space-y-3">
-        <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿QUÉ VAS A INVENTARIAR?</div>
+      <div className="flex-1 bg-[#D9D9D9] rounded-t-[28px] px-5 pt-7 pb-10 space-y-3">
+        <div className="text-[#4A4A4A] text-xs tracking-wide text-center mb-2">¿QUÉ VAS A INVENTARIAR?</div>
 
         <button
           onClick={() => onElegirModulo("producto_terminado")}
@@ -660,13 +660,13 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
 
         <button
           onClick={onExportar}
-          className="w-full text-center py-3 text-[12px] text-[#6E776A] active:text-[#8A9389]"
+          className="w-full text-center py-3 text-[12px] text-[#6E6E6E] active:text-[#4A4A4A]"
         >
           Exportar reporte (supervisores)
         </button>
         <button
           onClick={onBorrarBD}
-          className="w-full text-center pb-1 text-[11px] text-[#5A3A3A] active:text-[#E8A8A8]"
+          className="w-full text-center pb-1 text-[11px] text-[#5A3A3A] active:text-[#B3261E]"
         >
           Borrar base de datos (supervisores)
         </button>
@@ -680,11 +680,11 @@ function PantallaInicio({ onElegirModulo, onExportar, onBorrarBD }) {
 // ===========================================================================
 function PantallaSubmodoPT({ onElegir, onVolver }) {
   return (
-    <div className="min-h-screen bg-[#0E1410] flex flex-col">
+    <div className="min-h-screen bg-[#D9D9D9] flex flex-col">
       <BarraSuperiorSimple titulo="Producto Terminado" onVolver={onVolver} />
       <div className="flex-1 flex flex-col justify-center px-5 space-y-3 max-w-md mx-auto w-full">
         <img src={logoCocaCola} alt="Coca-Cola" className="h-40 mx-auto mb-3 object-contain" />
-        <div className="text-[#8A9389] text-xs tracking-wide text-center mb-2">¿CON QUÉ MODALIDAD?</div>
+        <div className="text-[#4A4A4A] text-xs tracking-wide text-center mb-2">¿CON QUÉ MODALIDAD?</div>
         <button
           onClick={() => onElegir("tpm")}
           className="w-full bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-4 text-left active:scale-[0.98] transition-transform"
@@ -719,11 +719,11 @@ function PantallaSubmodoPT({ onElegir, onVolver }) {
 // ===========================================================================
 function PantallaFamilia({ onElegir, onVolver }) {
   return (
-    <div className="min-h-screen bg-[#0E1410] flex flex-col">
+    <div className="min-h-screen bg-[#D9D9D9] flex flex-col">
       <BarraSuperiorSimple titulo="Materiales Retornables" onVolver={onVolver} />
       <div className="px-5 pt-2 max-w-md mx-auto w-full">
         <img src={logoCocaCola} alt="Coca-Cola" className="h-32 mx-auto mb-3 object-contain" />
-        <div className="text-[#8A9389] text-xs tracking-wide text-center mb-3">SELECCIONA LA FAMILIA</div>
+        <div className="text-[#4A4A4A] text-xs tracking-wide text-center mb-3">SELECCIONA LA FAMILIA</div>
         <div className="space-y-2.5">
           {FAMILIAS_RETORNABLES.map((f) => (
             <button
@@ -749,15 +749,15 @@ function PantallaFamilia({ onElegir, onVolver }) {
 function BarraSuperiorSimple({ titulo, onVolver }) {
   return (
     <header
-      className="px-4 flex items-center gap-3 border-b border-[#2A332C]"
+      className="px-4 flex items-center gap-3 border-b border-[#C4C4C4]"
       style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))", paddingBottom: "0.75rem" }}
     >
-      <button onClick={onVolver} className="text-[#8A9389] hover:text-[#EDEAE2]">
+      <button onClick={onVolver} className="text-[#4A4A4A] hover:text-[#1A1A1A]">
         <ChevronLeft size={22} />
       </button>
       <div>
-        <div className="text-[10px] text-[#6E776A] tracking-wide">{PLANTA.toUpperCase()}</div>
-        <div className="text-[#EDEAE2] font-extrabold text-sm tracking-tight">{titulo}</div>
+        <div className="text-[10px] text-[#6E6E6E] tracking-wide">{PLANTA.toUpperCase()}</div>
+        <div className="text-[#1A1A1A] font-extrabold text-sm tracking-tight">{titulo}</div>
       </div>
     </header>
   );
@@ -786,22 +786,22 @@ function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizan
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-[#161D14] border border-[#2A332C] rounded-t-2xl sm:rounded-2xl w-full max-w-md p-5 space-y-4">
+      <div className="bg-white border border-[#C4C4C4] rounded-t-2xl sm:rounded-2xl w-full max-w-md p-5 space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-[11px] text-[#8A9389] tracking-wide">SINCRONIZAR SESIÓN</div>
-            <div className="text-base font-bold mt-0.5 text-[#EDEAE2]">{totalRegistros} registros listos</div>
+            <div className="text-[11px] text-[#4A4A4A] tracking-wide">SINCRONIZAR SESIÓN</div>
+            <div className="text-base font-bold mt-0.5 text-[#1A1A1A]">{totalRegistros} registros listos</div>
           </div>
-          <button onClick={onCancelar} className="text-[#6E776A] hover:text-[#EDEAE2]">
+          <button onClick={onCancelar} className="text-[#6E6E6E] hover:text-[#1A1A1A]">
             <X size={20} />
           </button>
         </div>
 
         <div>
-          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">NÚMERO DE EMPLEADO</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">NÚMERO DE EMPLEADO</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <UserCircle2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+              <UserCircle2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E6E6E]" />
               <input
                 type="text"
                 inputMode="numeric"
@@ -809,46 +809,46 @@ function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizan
                 value={numEmpleado}
                 onChange={(e) => { setNumEmpleado(e.target.value); setResultado(null); }}
                 placeholder="Ej. 10234"
-                className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
+                className="w-full mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:text-[#9A9A9A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
                 autoFocus
               />
             </div>
             <button
               onClick={buscar}
               disabled={!numEmpleado.trim() || buscando}
-              className="bg-[#2A332C] px-4 rounded-lg flex items-center justify-center disabled:opacity-40"
+              className="bg-[#D8D8D8] px-4 rounded-lg flex items-center justify-center disabled:opacity-40"
             >
-              <Search size={18} className="text-[#EDEAE2]" />
+              <Search size={18} className="text-[#1A1A1A]" />
             </button>
           </div>
         </div>
 
         {buscando && (
-          <div className="text-[11px] text-[#8A9389] flex items-center gap-2">
+          <div className="text-[11px] text-[#4A4A4A] flex items-center gap-2">
             <div className="w-3 h-3 border-2 border-[#8A9389] border-t-transparent rounded-full animate-spin" />
             Buscando en el directorio…
           </div>
         )}
 
         {resultado && resultado !== "no_encontrado" && (
-          <div className="flex items-center gap-2 bg-[#15201A] border border-[#2A332C] rounded-lg p-3">
-            <CheckCircle2 size={18} className="text-[#9FD3A6] shrink-0" />
+          <div className="flex items-center gap-2 bg-[#EAF5EC] border border-[#C4C4C4] rounded-lg p-3">
+            <CheckCircle2 size={18} className="text-[#1F7A3D] shrink-0" />
             <div>
-              <div className="text-[#9FD3A6] font-bold text-sm">{resultado}</div>
-              <div className="text-[10px] text-[#8A9389]">Empleado #{numEmpleado.trim()}</div>
+              <div className="text-[#1F7A3D] font-bold text-sm">{resultado}</div>
+              <div className="text-[10px] text-[#4A4A4A]">Empleado #{numEmpleado.trim()}</div>
             </div>
           </div>
         )}
 
         {resultado === "no_encontrado" && (
-          <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-sm text-[#E8A8A8]">
+          <div className="flex items-start gap-2 bg-[#FBE9E7] border border-[#E8A8A8] rounded-lg p-3 text-sm text-[#B3261E]">
             <XCircle size={16} className="mt-0.5 shrink-0" />
             No se encontró ese número de empleado en el directorio. Verifica el número.
           </div>
         )}
 
         {error && (
-          <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-sm text-[#E8A8A8]">
+          <div className="flex items-start gap-2 bg-[#FBE9E7] border border-[#E8A8A8] rounded-lg p-3 text-sm text-[#B3261E]">
             <XCircle size={16} className="mt-0.5 shrink-0" /> {error}
           </div>
         )}
@@ -880,14 +880,14 @@ function ModalSincronizar({ totalRegistros, onCancelar, onConfirmar, sincronizan
 function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicacionLibre, claro }) {
   return (
     <div>
-      <label className={`text-[11px] tracking-wide block mb-1.5 ${claro ? "text-[#4A4A4A]" : "text-[#8A9389]"}`}>UBICACIÓN</label>
+      <label className={`text-[11px] tracking-wide block mb-1.5 ${claro ? "text-[#4A4A4A]" : "text-[#4A4A4A]"}`}>UBICACIÓN</label>
       <div className="relative">
-        <MapPin size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E776A]"}`} />
+        <MapPin size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E6E6E]"}`} />
         <select
           value={ubicacion ?? ""}
           onChange={(e) => setUbicacion(e.target.value)}
-          style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}
-          className={`w-full rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A] appearance-none ${claro ? "bg-white border-2 border-[#1A1A1A]" : "bg-[#1B2119] border border-[#2A332C]"}`}
+          style={{ color: claro ? "#1A1A1A" : "#1A1A1A" }}
+          className={`w-full rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A] appearance-none ${claro ? "bg-white border-2 border-[#1A1A1A]" : "bg-[#F0F0F0] border border-[#C4C4C4]"}`}
         >
           {!ubicacion && <option value="" disabled>Selecciona tu zona…</option>}
           {UBICACIONES_DEMO.map((u) => (
@@ -901,7 +901,7 @@ function SelectorUbicacion({ ubicacion, setUbicacion, ubicacionLibre, setUbicaci
           onChange={(e) => setUbicacionLibre(e.target.value)}
           placeholder="Especifica la ubicación"
           style={{ color: claro ? "#1A1A1A" : undefined }}
-          className={`w-full mt-2 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#1B2119] border border-[#2A332C] placeholder:text-[#4A524A]"}`}
+          className={`w-full mt-2 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#F0F0F0] border border-[#C4C4C4] placeholder:text-[#9A9A9A]"}`}
         />
       )}
     </div>
@@ -957,7 +957,7 @@ function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus, claro }) {
   return (
     <div ref={contenedorRef} className="relative">
       <div className="relative">
-        <Search size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E776A]"}`} />
+        <Search size={15} className={`absolute left-3 top-1/2 -translate-y-1/2 ${claro ? "text-[#4A4A4A]" : "text-[#6E6E6E]"}`} />
         <input
           type="text"
           inputMode="numeric"
@@ -966,27 +966,27 @@ function BuscadorSKU({ catalogoPT, valor, onSeleccionar, autoFocus, claro }) {
           onFocus={() => setAbierto(true)}
           placeholder="SKU o nombre del producto…"
           autoFocus={autoFocus}
-          style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}
-          className={`w-full mono rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:font-normal focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#1B2119] border border-[#2A332C] placeholder:text-[#4A524A]"}`}
+          style={{ color: claro ? "#1A1A1A" : "#1A1A1A" }}
+          className={`w-full mono rounded-lg pl-9 pr-3 py-3 text-base font-bold placeholder:font-normal focus:outline-none focus:border-[#E2231A] ${claro ? "bg-white border-2 border-[#1A1A1A] placeholder:text-[#8A8A8A]" : "bg-[#F0F0F0] border border-[#C4C4C4] placeholder:text-[#9A9A9A]"}`}
         />
       </div>
       {abierto && resultados.length > 0 && (
-        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg overflow-hidden shadow-lg max-h-64 overflow-y-auto ${claro ? "bg-white border border-[#C4C4C4]" : "bg-[#161D14] border border-[#2A332C]"}`}>
+        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg overflow-hidden shadow-lg max-h-64 overflow-y-auto ${claro ? "bg-white border border-[#C4C4C4]" : "bg-white border border-[#C4C4C4]"}`}>
           {resultados.map((r) => (
             <button
               key={r.sku}
               type="button"
               onClick={() => seleccionar(r)}
-              className={`w-full text-left px-3 py-2.5 border-b last:border-b-0 ${claro ? "hover:bg-[#F0F0F0] active:bg-[#E8E8E8] border-[#D8D8D8]" : "hover:bg-[#1B2119] active:bg-[#232B20] border-[#2A332C]"}`}
+              className={`w-full text-left px-3 py-2.5 border-b last:border-b-0 ${claro ? "hover:bg-[#F0F0F0] active:bg-[#E8E8E8] border-[#D8D8D8]" : "hover:bg-[#F0F0F0] active:bg-[#E8E8E8] border-[#C4C4C4]"}`}
             >
-              <div className="mono text-sm font-bold" style={{ color: claro ? "#1A1A1A" : "#EDEAE2" }}>{r.sku}</div>
-              <div className="text-[11px] truncate" style={{ color: claro ? "#4A4A4A" : "#8A9389" }}>{r.nombre}</div>
+              <div className="mono text-sm font-bold" style={{ color: claro ? "#1A1A1A" : "#1A1A1A" }}>{r.sku}</div>
+              <div className="text-[11px] truncate" style={{ color: claro ? "#4A4A4A" : "#4A4A4A" }}>{r.nombre}</div>
             </button>
           ))}
         </div>
       )}
       {abierto && texto.trim() && resultados.length === 0 && (
-        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg px-3 py-2.5 text-[11px] ${claro ? "bg-white border border-[#C4C4C4]" : "bg-[#161D14] border border-[#2A332C]"}`} style={{ color: claro ? "#8A6D1A" : "#F2C879" }}>
+        <div className={`absolute z-30 left-0 right-0 mt-1 rounded-lg px-3 py-2.5 text-[11px] ${claro ? "bg-white border border-[#C4C4C4]" : "bg-white border border-[#C4C4C4]"}`} style={{ color: claro ? "#8A6D1A" : "#8A5A00" }}>
           Sin coincidencias en el catálogo — verifica el número.
         </div>
       )}
@@ -1036,31 +1036,31 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-[#161D14] border border-[#2A332C] rounded-t-2xl sm:rounded-2xl w-full max-w-md p-5 space-y-4 max-h-[92vh] overflow-y-auto">
+      <div className="bg-white border border-[#C4C4C4] rounded-t-2xl sm:rounded-2xl w-full max-w-md p-5 space-y-4 max-h-[92vh] overflow-y-auto">
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-[11px] text-[#8A9389] tracking-wide">CONFIRMAR ESCANEO</div>
-            <div className="text-base font-bold mt-0.5 text-[#EDEAE2]">{nombre}</div>
-            <div className="mono text-[11px] text-[#8A9389] mt-1">
+            <div className="text-[11px] text-[#4A4A4A] tracking-wide">CONFIRMAR ESCANEO</div>
+            <div className="text-base font-bold mt-0.5 text-[#1A1A1A]">{nombre}</div>
+            <div className="mono text-[11px] text-[#4A4A4A] mt-1">
               Orden {etiqueta.ordenProduccion || "—"} · Línea {etiqueta.linea || "—"}
             </div>
             {etiqueta.detalleTecnico && (
-              <div className="text-[10px] text-[#6E776A] mt-1">{etiqueta.detalleTecnico}</div>
+              <div className="text-[10px] text-[#6E6E6E] mt-1">{etiqueta.detalleTecnico}</div>
             )}
           </div>
-          <button onClick={onCancelar} className="text-[#6E776A] hover:text-[#EDEAE2]">
+          <button onClick={onCancelar} className="text-[#6E6E6E] hover:text-[#1A1A1A]">
             <X size={20} />
           </button>
         </div>
 
         {necesitaSkuManual && (
           <div>
-            <label className="text-[11px] text-[#F2C879] tracking-wide block mb-1.5">
+            <label className="text-[11px] text-[#8A5A00] tracking-wide block mb-1.5">
               SKU — el código de barras no lo trae, busca el producto
             </label>
             <BuscadorSKU catalogoPT={catalogoPT} valor={skuManual} onSeleccionar={setSkuManual} autoFocus />
             {skuManual && !skuInfo && (
-              <div className="text-[11px] text-[#F2C879] mt-1.5">Ese SKU no está en la base de datos — puedes seguir, pero verifica que el número sea correcto.</div>
+              <div className="text-[11px] text-[#8A5A00] mt-1.5">Ese SKU no está en la base de datos — puedes seguir, pero verifica que el número sea correcto.</div>
             )}
           </div>
         )}
@@ -1068,29 +1068,29 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
 
         {necesitaFechaManual ? (
           <div>
-            <label className="text-[11px] text-[#F2C879] tracking-wide block mb-1.5">
+            <label className="text-[11px] text-[#8A5A00] tracking-wide block mb-1.5">
               FECHA DE MÁXIMA FRESCURA — la del banner negro en la etiqueta
             </label>
             <div className="relative">
-              <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E776A]" />
+              <Calendar size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E6E6E]" />
               <input
                 type="date"
                 value={fechaManual}
                 onChange={(e) => setFechaManual(e.target.value)}
-                style={{ color: "#EDEAE2", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
-                className="w-full max-w-full block mono bg-[#1B2119] border border-[#F2C879] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
+                style={{ color: "#1A1A1A", boxSizing: "border-box", WebkitAppearance: "none", appearance: "none" }}
+                className="w-full max-w-full block mono bg-[#F0F0F0] border border-[#F2C879] rounded-lg pl-9 pr-3 py-3 text-sm focus:outline-none focus:border-[#E2231A]"
               />
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-2 bg-[#1B2119] border border-[#2A332C] rounded-lg p-3 text-[11px] text-[#8A9389]">
-            <AlertTriangle size={14} className="text-[#F2C879] mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2 bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg p-3 text-[11px] text-[#4A4A4A]">
+            <AlertTriangle size={14} className="text-[#8A5A00] mt-0.5 shrink-0" />
             Esta fecha de caducidad ({formatFecha(etiqueta.agrupadorCaducidad)}) aplica a todo el bloque que estás registrando.
           </div>
         )}
 
         <div>
-          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">CANTIDAD</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">CANTIDAD</label>
           <input
             type="number"
             inputMode="numeric"
@@ -1098,24 +1098,24 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
             min="1"
             value={cantidad}
             onChange={(e) => setCantidad(e.target.value)}
-            style={{ color: "#EDEAE2" }}
-            className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-lg font-bold focus:outline-none focus:border-[#E2231A]"
+            style={{ color: "#1A1A1A" }}
+            className="w-full mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg px-3 py-3 text-lg font-bold focus:outline-none focus:border-[#E2231A]"
             autoFocus
           />
         </div>
 
         <div>
-          <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">UNIDAD</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">UNIDAD</label>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setUnidad("tarimas")}
-              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${unidad === "tarimas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
+              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${unidad === "tarimas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#F0F0F0] border-[#C4C4C4] text-[#4A4A4A]"}`}
             >
               <Layers size={16} /> Tarimas
             </button>
             <button
               onClick={() => setUnidad("cajas")}
-              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${unidad === "cajas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
+              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${unidad === "cajas" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#F0F0F0] border-[#C4C4C4] text-[#4A4A4A]"}`}
             >
               <Boxes size={16} /> Cajas
             </button>
@@ -1124,11 +1124,11 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
 
         {unidad === "tarimas" && (
           <div>
-            <label className="text-[11px] text-[#8A9389] tracking-wide block mb-1.5">CAJAS POR TARIMA</label>
+            <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">CAJAS POR TARIMA</label>
             {cajasXTarimaCatalogo ? (
-              <div className="bg-[#15201A] border border-[#2A332C] rounded-lg px-3 py-2.5 flex items-center justify-between">
-                <span className="text-[11px] text-[#9FD3A6]">✓ De la base de datos</span>
-                <span className="mono text-sm font-bold text-[#9FD3A6]">{cajasXTarimaCatalogo} cajas/tarima</span>
+              <div className="bg-[#EAF5EC] border border-[#C4C4C4] rounded-lg px-3 py-2.5 flex items-center justify-between">
+                <span className="text-[11px] text-[#1F7A3D]">✓ De la base de datos</span>
+                <span className="mono text-sm font-bold text-[#1F7A3D]">{cajasXTarimaCatalogo} cajas/tarima</span>
               </div>
             ) : (
               <>
@@ -1140,17 +1140,17 @@ function ModalCantidadPT({ etiqueta, catalogoPT, onConfirmar, onCancelar, ubicac
                   value={cajasPorTarimaManual}
                   onChange={(e) => setCajasPorTarimaManual(e.target.value)}
                   placeholder={etiqueta.cajasXPalet ? String(etiqueta.cajasXPalet) : "Ej. 40"}
-                  className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#4A524A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
+                  className="w-full mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg px-3 py-3 text-base font-bold placeholder:text-[#9A9A9A] placeholder:font-normal focus:outline-none focus:border-[#E2231A]"
                 />
                 {etiqueta.cajasXPalet ? (
-                  <div className="text-[11px] text-[#9FD3A6] mt-1.5">✓ Tomado de la etiqueta ({etiqueta.cajasXPalet} cajas/palet)</div>
+                  <div className="text-[11px] text-[#1F7A3D] mt-1.5">✓ Tomado de la etiqueta ({etiqueta.cajasXPalet} cajas/palet)</div>
                 ) : (
-                  <div className="text-[11px] text-[#F2C879] mt-1.5">SKU no está en la base de datos — captúralo manualmente</div>
+                  <div className="text-[11px] text-[#8A5A00] mt-1.5">SKU no está en la base de datos — captúralo manualmente</div>
                 )}
               </>
             )}
             {totalCajas !== null && (
-              <div className="mt-1.5 text-[11px] text-[#9FD3A6] mono">
+              <div className="mt-1.5 text-[11px] text-[#1F7A3D] mono">
                 = {cantidad} × {cajasXTarimaEfectivo} = <span className="font-bold">{totalCajas} cajas</span> en total
               </div>
             )}
@@ -1515,7 +1515,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
                     <button
                       key={i}
                       onClick={() => quitarBloqueEnCola(i)}
-                      className="mono text-[11px] bg-[#1A1A1A] text-[#9FD3A6] rounded px-2 py-1 flex items-center gap-1"
+                      className="mono text-[11px] bg-[#1A1A1A] text-[#1F7A3D] rounded px-2 py-1 flex items-center gap-1"
                     >
                       {b.valor}{b.modo === "restos" ? "r" : ""} <X size={9} />
                     </button>
@@ -1536,9 +1536,9 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
               {c === "cantidad" && (
                 <div className="mt-1.5 min-h-[34px]">
                   {!editandoArmado && (bloquesEnCola.length > 0 || Number(tarimas) > 0) && (
-                    <div className="text-[12px] mono bg-[#161D14] text-[#9FD3A6] rounded-lg px-2.5 py-2 font-medium">
+                    <div className="text-[12px] mono bg-white text-[#1F7A3D] rounded-lg px-2.5 py-2 font-medium">
                       = <span className="font-bold">{Math.round(totalPreview)} piezas</span>
-                      {bloquesEnCola.length > 0 && <span className="text-[#6E776A]"> · {bloquesEnCola.length} bloque{bloquesEnCola.length !== 1 ? "s" : ""} en cola</span>}
+                      {bloquesEnCola.length > 0 && <span className="text-[#6E6E6E]"> · {bloquesEnCola.length} bloque{bloquesEnCola.length !== 1 ? "s" : ""} en cola</span>}
                     </div>
                   )}
                 </div>
@@ -1549,7 +1549,7 @@ function CapturaRapidaPT({ submodo, catalogoPT, onAgregar, ubicacionSesion, ubic
       </div>
 
       {aviso && (
-        <div className="flex items-center gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-2.5 text-[12px] text-white">
+        <div className="flex items-center gap-2 bg-[#FBE9E7] border border-[#E8A8A8] rounded-lg p-2.5 text-[12px] text-white">
           <AlertTriangle size={14} className="shrink-0" /> {aviso}
         </div>
       )}
@@ -1738,9 +1738,9 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
         <div>
           <label className="text-[11px] text-[#4A4A4A] tracking-wide block mb-1.5">CAJAS POR TARIMA</label>
           {cajasXTarimaCatalogo ? (
-            <div className="bg-[#15201A] border border-[#2A332C] rounded-lg px-3 py-2.5 flex items-center justify-between">
-              <span className="text-[11px] text-[#9FD3A6]">✓ De la base de datos</span>
-              <span className="mono text-sm font-bold text-[#9FD3A6]">{cajasXTarimaCatalogo} cajas/tarima</span>
+            <div className="bg-[#EAF5EC] border border-[#C4C4C4] rounded-lg px-3 py-2.5 flex items-center justify-between">
+              <span className="text-[11px] text-[#1F7A3D]">✓ De la base de datos</span>
+              <span className="mono text-sm font-bold text-[#1F7A3D]">{cajasXTarimaCatalogo} cajas/tarima</span>
             </div>
           ) : (
             <>
@@ -1781,7 +1781,7 @@ function FormularioPTManual({ submodo, catalogoPT, onAgregar, ubicacionSesion, u
       )}
 
       {error && (
-        <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-sm text-[#E8A8A8]">
+        <div className="flex items-start gap-2 bg-[#FBE9E7] border border-[#E8A8A8] rounded-lg p-3 text-sm text-[#B3261E]">
           <XCircle size={16} className="mt-0.5 shrink-0" /> {error}
         </div>
       )}
@@ -2034,7 +2034,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
           {estibas.length > 0 && (
             <div className="flex gap-1 mt-1 justify-center flex-wrap">
               {estibas.map((v, i) => (
-                <button key={i} onClick={() => quitarEstiba(i)} className="mono text-[9px] bg-[#15201A] text-[#9FD3A6] rounded px-1.5 py-0.5 flex items-center gap-0.5">
+                <button key={i} onClick={() => quitarEstiba(i)} className="mono text-[9px] bg-[#EAF5EC] text-[#1F7A3D] rounded px-1.5 py-0.5 flex items-center gap-0.5">
                   {v} <X size={8} />
                 </button>
               ))}
@@ -2043,7 +2043,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
           {estibas.length === 0 && historialTarimas.length > 0 && (
             <div className="flex gap-1 mt-1 justify-center">
               {historialTarimas.map((v, i) => (
-                <span key={i} className="mono text-[9px] bg-[#1B2119] text-[#C9CFC5] rounded px-1.5 py-0.5">{Math.round(v)}</span>
+                <span key={i} className="mono text-[9px] bg-[#F0F0F0] text-[#4A4A4A] rounded px-1.5 py-0.5">{Math.round(v)}</span>
               ))}
             </div>
           )}
@@ -2064,7 +2064,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
             {restosLista.length > 0 && (
               <div className="flex gap-1 mt-1 justify-center flex-wrap">
                 {restosLista.map((v, i) => (
-                  <button key={i} onClick={() => quitarResto(i)} className="mono text-[9px] bg-[#15201A] text-[#9FD3A6] rounded px-1.5 py-0.5 flex items-center gap-0.5">
+                  <button key={i} onClick={() => quitarResto(i)} className="mono text-[9px] bg-[#EAF5EC] text-[#1F7A3D] rounded px-1.5 py-0.5 flex items-center gap-0.5">
                     {v} <X size={8} />
                   </button>
                 ))}
@@ -2073,7 +2073,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
             {restosLista.length === 0 && historialRestos.length > 0 && (
               <div className="flex gap-1 mt-1 justify-center">
                 {historialRestos.map((v, i) => (
-                  <span key={i} className="mono text-[9px] bg-[#1B2119] text-[#C9CFC5] rounded px-1.5 py-0.5">{Math.round(v)}</span>
+                  <span key={i} className="mono text-[9px] bg-[#F0F0F0] text-[#4A4A4A] rounded px-1.5 py-0.5">{Math.round(v)}</span>
                 ))}
               </div>
             )}
@@ -2082,7 +2082,7 @@ function FilaRetornable({ clave, info, catalogoFamilia, registrosDeEsteSku, omit
       </div>
 
       {(estibas.length > 0 || restosLista.length > 0 || tarimaActual || restoActual) && (
-        <div className="text-[12px] text-[#9FD3A6] mono bg-[#0E1410] rounded-lg px-2.5 py-2 font-medium">
+        <div className="text-[12px] text-[#1F7A3D] mono bg-[#D9D9D9] rounded-lg px-2.5 py-2 font-medium">
           {!info.esPieza ? (
             <>= {tarimasFinal} × {factorElegido}{restosFinal ? ` + ${restosFinal}` : ""} = <span className="font-bold">{Math.round(totalPiezasPreview)} piezas</span></>
           ) : (
@@ -2253,7 +2253,7 @@ function FormularioRetornable({ familiaId, catalogoRetornables, escaneos, onAgre
           />
         ))}
         {entradasFiltradas.length === 0 && (
-          <div className="text-center py-10 text-[#6E776A] text-sm">Sin resultados para "{filtro}".</div>
+          <div className="text-center py-10 text-[#6E6E6E] text-sm">Sin resultados para "{filtro}".</div>
         )}
       </div>
 
@@ -2456,7 +2456,7 @@ function EscanerCamara({ onDetectado, flashOk }) {
   };
 
   return (
-    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#070A06] border border-[#2A332C]">
+    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#070A06] border border-[#C4C4C4]">
       <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
 
       {estado === "activo" && (
@@ -2473,16 +2473,16 @@ function EscanerCamara({ onDetectado, flashOk }) {
 
       {estado === "iniciando" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-          <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#2A332C", borderTopColor: "#E2231A" }} />
-          <div className="text-[11px]" style={{ color: "#8A9389" }}>Iniciando cámara…</div>
+          <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#C4C4C4", borderTopColor: "#E2231A" }} />
+          <div className="text-[11px]" style={{ color: "#4A4A4A" }}>Iniciando cámara…</div>
         </div>
       )}
 
       {estado === "permiso_denegado" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-          <AlertTriangle size={28} style={{ color: "#F2C879" }} />
-          <div className="text-sm font-bold" style={{ color: "#EDEAE2" }}>Permiso de cámara denegado</div>
-          <div className="text-[11px]" style={{ color: "#8A9389" }}>
+          <AlertTriangle size={28} style={{ color: "#8A5A00" }} />
+          <div className="text-sm font-bold" style={{ color: "#1A1A1A" }}>Permiso de cámara denegado</div>
+          <div className="text-[11px]" style={{ color: "#4A4A4A" }}>
             Ve a los ajustes del navegador y permite el acceso a la cámara para este sitio, luego recarga la página.
           </div>
         </div>
@@ -2490,21 +2490,21 @@ function EscanerCamara({ onDetectado, flashOk }) {
 
       {estado === "sin_camara" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-          <Camera size={28} style={{ color: "#8A9389" }} />
-          <div className="text-sm font-bold" style={{ color: "#EDEAE2" }}>No se detectó ninguna cámara</div>
-          <div className="text-[11px]" style={{ color: "#8A9389" }}>Usa el campo de código manual debajo.</div>
+          <Camera size={28} style={{ color: "#4A4A4A" }} />
+          <div className="text-sm font-bold" style={{ color: "#1A1A1A" }}>No se detectó ninguna cámara</div>
+          <div className="text-[11px]" style={{ color: "#4A4A4A" }}>Usa el campo de código manual debajo.</div>
         </div>
       )}
 
       {estado === "error" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-          <XCircle size={28} style={{ color: "#E8A8A8" }} />
-          <div className="text-sm font-bold" style={{ color: "#EDEAE2" }}>No se pudo iniciar la cámara</div>
-          <div className="text-[11px]" style={{ color: "#8A9389" }}>{errorMsg}</div>
+          <XCircle size={28} style={{ color: "#B3261E" }} />
+          <div className="text-sm font-bold" style={{ color: "#1A1A1A" }}>No se pudo iniciar la cámara</div>
+          <div className="text-[11px]" style={{ color: "#4A4A4A" }}>{errorMsg}</div>
         </div>
       )}
 
-      <div className="absolute top-3 left-3 flex items-center gap-1.5 text-[10px] mono" style={{ color: "#8A9389" }}>
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 text-[10px] mono" style={{ color: "#4A4A4A" }}>
         <Camera size={12} />
         {estado === "activo" ? "CÁMARA ACTIVA" : "CÁMARA"}
       </div>
@@ -2544,7 +2544,7 @@ function EscanerCamara({ onDetectado, flashOk }) {
       )}
 
       {estado === "activo" && (
-        <div className="absolute bottom-3 inset-x-3 text-center text-[11px]" style={{ color: "#8A9389" }}>
+        <div className="absolute bottom-3 inset-x-3 text-center text-[11px]" style={{ color: "#4A4A4A" }}>
           Apunta al código de barras inferior de la etiqueta
         </div>
       )}
@@ -2705,7 +2705,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
 
   const badgeConfianza = (conf) => {
     if (conf == null) return null;
-    const color = conf >= 80 ? "#9FD3A6" : conf >= 55 ? "#F2C879" : "#E8A8A8";
+    const color = conf >= 80 ? "#1F7A3D" : conf >= 55 ? "#8A5A00" : "#B3261E";
     const texto = conf >= 80 ? "alta" : conf >= 55 ? "revisar" : "baja — revisar";
     return <span className="text-[10px] font-medium" style={{ color }}>● confianza {texto}</span>;
   };
@@ -2715,20 +2715,20 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
     const campo = (etiqueta, key, confKey) => (
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="text-[11px] text-[#8A9389] tracking-wide">{etiqueta}</label>
+          <label className="text-[11px] text-[#4A4A4A] tracking-wide">{etiqueta}</label>
           {confKey && badgeConfianza(c[confKey])}
         </div>
         <input
           value={pendienteLocal[key] ?? ""}
           onChange={(e) => actualizarCampo(key, e.target.value)}
-          style={{ color: "#EDEAE2" }}
-          className="w-full mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E2231A]"
+          style={{ color: "#1A1A1A" }}
+          className="w-full mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E2231A]"
         />
       </div>
     );
     return (
-      <div className="space-y-3 bg-[#161D14] border border-[#2A332C] rounded-2xl p-4">
-        <div className="text-[11px] text-[#8A9389] tracking-wide mb-1">REVISA LOS DATOS ANTES DE CONFIRMAR</div>
+      <div className="space-y-3 bg-white border border-[#C4C4C4] rounded-2xl p-4">
+        <div className="text-[11px] text-[#4A4A4A] tracking-wide mb-1">REVISA LOS DATOS ANTES DE CONFIRMAR</div>
         {campo("SKU", "productoId", "sku")}
         {campo("CENTRO", "centro", "centro")}
         {campo("LÍNEA", "linea", "linea")}
@@ -2741,16 +2741,16 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
         {campo("CÓDIGO (barcode)", "barcode", null)}
 
         {campos?._diagnostico && (
-          <details className="bg-[#1B2119] border border-[#2A332C] rounded-lg p-3">
-            <summary className="text-[11px] text-[#8A9389] tracking-wide cursor-pointer">
+          <details className="bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg p-3">
+            <summary className="text-[11px] text-[#4A4A4A] tracking-wide cursor-pointer">
               Detalle técnico (para soporte) — toca para ver/ocultar
             </summary>
-            <div className="mt-2 space-y-1.5 text-[11px] text-[#C9CFC5]">
-              <div className="text-[#9FD3A6]">Versión del código: <span className="mono">{campos._diagnostico.version || "anterior (sin marca)"}</span></div>
+            <div className="mt-2 space-y-1.5 text-[11px] text-[#4A4A4A]">
+              <div className="text-[#1F7A3D]">Versión del código: <span className="mono">{campos._diagnostico.version || "anterior (sin marca)"}</span></div>
               <div>Tamaño de imagen: <span className="mono">{campos._diagnostico.tamanoImagen}</span></div>
               <div>Palabras detectadas: <span className="mono">{campos._diagnostico.numPalabrasDetectadas}</span></div>
               {Object.keys(campos._diagnostico.errores || {}).length > 0 && (
-                <div className="text-[#F2C879]">
+                <div className="text-[#8A5A00]">
                   Errores por campo:
                   {Object.entries(campos._diagnostico.errores).map(([k, v]) => (
                     <div key={k} className="mono ml-2">• {k}: {v}</div>
@@ -2768,7 +2768,7 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
         )}
 
         <div className="grid grid-cols-2 gap-2 pt-1">
-          <button onClick={reintentar} className="py-2.5 rounded-lg border border-[#2A332C] text-[#C9CFC5] text-sm font-medium active:scale-[0.98] transition-transform">
+          <button onClick={reintentar} className="py-2.5 rounded-lg border border-[#C4C4C4] text-[#4A4A4A] text-sm font-medium active:scale-[0.98] transition-transform">
             Reintentar
           </button>
           <button onClick={confirmar} style={{ backgroundColor: "#E2231A" }} className="py-2.5 rounded-lg text-white text-sm font-bold active:scale-[0.98] transition-transform">
@@ -2780,27 +2780,27 @@ function EscaneoInteligente({ catalogoPT, onCompletado }) {
   }
 
   return (
-    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#070A06] border border-[#2A332C]">
+    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#070A06] border border-[#C4C4C4]">
       <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
       {fase === "leyendo" && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-2">
-          <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#2A332C", borderTopColor: "#E2231A" }} />
-          <div className="text-[11px]" style={{ color: "#EDEAE2" }}>Leyendo etiqueta (código + texto)…</div>
+          <div className="w-7 h-7 border-3 rounded-full animate-spin" style={{ borderColor: "#C4C4C4", borderTopColor: "#E2231A" }} />
+          <div className="text-[11px]" style={{ color: "#1A1A1A" }}>Leyendo etiqueta (código + texto)…</div>
         </div>
       )}
       {estadoCamara === "iniciando" && fase === "escaneando" && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-[11px]" style={{ color: "#8A9389" }}>Iniciando cámara…</div>
+          <div className="text-[11px]" style={{ color: "#4A4A4A" }}>Iniciando cámara…</div>
         </div>
       )}
       {estadoCamara === "error" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-          <XCircle size={28} style={{ color: "#E8A8A8" }} />
-          <div className="text-sm font-bold" style={{ color: "#EDEAE2" }}>No se pudo iniciar la cámara</div>
+          <XCircle size={28} style={{ color: "#B3261E" }} />
+          <div className="text-sm font-bold" style={{ color: "#1A1A1A" }}>No se pudo iniciar la cámara</div>
         </div>
       )}
       {estadoCamara === "activo" && fase === "escaneando" && (
-        <div className="absolute bottom-3 inset-x-3 text-center text-[11px]" style={{ color: "#8A9389" }}>
+        <div className="absolute bottom-3 inset-x-3 text-center text-[11px]" style={{ color: "#4A4A4A" }}>
           Apunta al código de barras — se leerá también el texto de la etiqueta
         </div>
       )}
@@ -3039,20 +3039,20 @@ export default function InventarioApp() {
   // -------------------------------------------------------------------------
   if (errorCarga) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ backgroundColor: "#0E1410" }}>
-        <AlertTriangle size={40} style={{ color: "#E8A8A8" }} />
-        <div className="mt-4 text-center" style={{ color: "#EDEAE2" }}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ backgroundColor: "#D9D9D9" }}>
+        <AlertTriangle size={40} style={{ color: "#B3261E" }} />
+        <div className="mt-4 text-center" style={{ color: "#1A1A1A" }}>
           <div className="font-bold mb-1">No se pudo cargar el catálogo</div>
-          <div className="text-sm" style={{ color: "#8A9389" }}>{errorCarga}</div>
+          <div className="text-sm" style={{ color: "#4A4A4A" }}>{errorCarga}</div>
         </div>
       </div>
     );
   }
   if (!catalogoPT || !catalogoRetornables) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: "#0E1410" }}>
-        <div className="w-8 h-8 border-3 rounded-full animate-spin" style={{ borderColor: "#2A332C", borderTopColor: "#E2231A" }} />
-        <div className="mt-4 text-sm" style={{ color: "#8A9389" }}>Cargando catálogo…</div>
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: "#D9D9D9" }}>
+        <div className="w-8 h-8 border-3 rounded-full animate-spin" style={{ borderColor: "#C4C4C4", borderTopColor: "#E2231A" }} />
+        <div className="mt-4 text-sm" style={{ color: "#4A4A4A" }}>Cargando catálogo…</div>
       </div>
     );
   }
@@ -3080,7 +3080,7 @@ export default function InventarioApp() {
   // PANTALLA DE SESIÓN (escanear / revisar / comparar)
   // -------------------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#0E1410] text-[#EDEAE2] font-sans">
+    <div className="min-h-screen bg-[#D9D9D9] text-[#1A1A1A] font-sans">
       <style>{`
         @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
         @keyframes flashPulse { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
@@ -3111,8 +3111,8 @@ export default function InventarioApp() {
       </header>
 
       <nav
-        style={{ backgroundColor: "#10160F" }}
-        className="flex border-b border-[#2A332C] sticky top-[57px] z-20"
+        style={{ backgroundColor: "#D9D9D9" }}
+        className="flex border-b border-[#C4C4C4] sticky top-[57px] z-20"
       >
         {/* Pestaña "Comparar" oculta — el stock ahora se compara con la
             macro/Excel (generar_inventario_final.py o el .bas), no dentro
@@ -3126,24 +3126,24 @@ export default function InventarioApp() {
             key={t.id}
             onClick={() => setVista(t.id)}
             style={{
-              color: vista === t.id ? "#E2231A" : "#8A9389",
+              color: vista === t.id ? "#E2231A" : "#4A4A4A",
               borderBottomColor: vista === t.id ? "#E2231A" : "transparent",
             }}
             className="flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors border-b-2"
           >
-            <t.icon size={16} color={vista === t.id ? "#E2231A" : "#8A9389"} />
+            <t.icon size={16} color={vista === t.id ? "#E2231A" : "#4A4A4A"} />
             {t.label}
           </button>
         ))}
       </nav>
 
       {mostrarAvisoRecuperado && (
-        <div className="mx-4 mt-3 flex items-start gap-2 bg-[#1B2119] border border-[#F2C879] rounded-lg p-3">
-          <CheckCircle2 size={16} className="text-[#F2C879] mt-0.5 shrink-0" />
-          <div className="flex-1 text-[12px] text-[#EDEAE2]">
+        <div className="mx-4 mt-3 flex items-start gap-2 bg-[#F0F0F0] border border-[#F2C879] rounded-lg p-3">
+          <CheckCircle2 size={16} className="text-[#8A5A00] mt-0.5 shrink-0" />
+          <div className="flex-1 text-[12px] text-[#1A1A1A]">
             Se recuperó tu conteo anterior — tenías <strong>{escaneos.length}</strong> registro(s) sin sincronizar y no se perdieron.
           </div>
-          <button onClick={() => setMostrarAvisoRecuperado(false)} className="text-[#6E776A] hover:text-[#EDEAE2] shrink-0">
+          <button onClick={() => setMostrarAvisoRecuperado(false)} className="text-[#6E6E6E] hover:text-[#1A1A1A] shrink-0">
             <X size={16} />
           </button>
         </div>
@@ -3166,7 +3166,7 @@ export default function InventarioApp() {
                     el botón para que nadie lo use mientras tanto. */}
                 <button
                   onClick={() => setModoEscaneo("manual")}
-                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${modoEscaneo === "manual" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#1B2119] border-[#2A332C] text-[#C9CFC5]"}`}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium ${modoEscaneo === "manual" ? "bg-[#E2231A] text-white border-[#E2231A]" : "bg-[#F0F0F0] border-[#C4C4C4] text-[#4A4A4A]"}`}
                 >
                   <PenLine size={16} /> Sin etiqueta
                 </button>
@@ -3198,12 +3198,12 @@ export default function InventarioApp() {
 
                 <button
                   onClick={simularEscaneoCamara}
-                  className="w-full bg-[#1B2119] border border-[#2A332C] text-[#8A9389] font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform text-sm"
+                  className="w-full bg-[#F0F0F0] border border-[#C4C4C4] text-[#4A4A4A] font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform text-sm"
                 >
                   <Scan size={16} /> Simular escaneo (sin cámara)
                 </button>
 
-                <div className="text-center text-[11px] text-[#6E776A]">— o ingresa el código manualmente —</div>
+                <div className="text-center text-[11px] text-[#6E6E6E]">— o ingresa el código manualmente —</div>
 
                 <div className="flex gap-2">
                   <input
@@ -3211,23 +3211,23 @@ export default function InventarioApp() {
                     value={inputManual}
                     onChange={(e) => setInputManual(e.target.value)}
                     placeholder="126823630125"
-                    style={{ color: "#EDEAE2" }}
-                    className="flex-1 mono bg-[#1B2119] border border-[#2A332C] rounded-lg px-3 py-2.5 text-sm placeholder:text-[#4A524A] focus:outline-none focus:border-[#E2231A]"
+                    style={{ color: "#1A1A1A" }}
+                    className="flex-1 mono bg-[#F0F0F0] border border-[#C4C4C4] rounded-lg px-3 py-2.5 text-sm placeholder:text-[#9A9A9A] focus:outline-none focus:border-[#E2231A]"
                   />
-                  <button onClick={escanearManualCodigo} style={{ color: "#EDEAE2" }} className="bg-[#2A332C] px-4 rounded-lg text-sm font-medium active:scale-[0.97] transition-transform">
+                  <button onClick={escanearManualCodigo} style={{ color: "#1A1A1A" }} className="bg-[#D8D8D8] px-4 rounded-lg text-sm font-medium active:scale-[0.97] transition-transform">
                     Cargar
                   </button>
                 </div>
 
                 {ultimoError && (
-                  <div className="flex items-start gap-2 bg-[#2A1818] border border-[#5A2A2A] rounded-lg p-3 text-sm text-[#E8A8A8]">
+                  <div className="flex items-start gap-2 bg-[#FBE9E7] border border-[#E8A8A8] rounded-lg p-3 text-sm text-[#B3261E]">
                     <XCircle size={16} className="mt-0.5 shrink-0" /> {ultimoError}
                   </div>
                 )}
 
                 {escaneos[0] && (
-                  <div className="bg-[#161D14] border border-[#2A332C] rounded-xl p-4">
-                    <div className="text-[11px] text-[#8A9389] mb-2 tracking-wide">ÚLTIMO REGISTRO</div>
+                  <div className="bg-white border border-[#C4C4C4] rounded-xl p-4">
+                    <div className="text-[11px] text-[#4A4A4A] mb-2 tracking-wide">ÚLTIMO REGISTRO</div>
                     <EscaneoDetalle e={escaneos[0]} catalogo={catalogoActivo} />
                   </div>
                 )}
@@ -3253,7 +3253,7 @@ export default function InventarioApp() {
         {vista === "revision" && (
           <div className="space-y-3">
             {escaneos.length === 0 && (
-              <div className="text-center py-16 text-[#6E776A] text-sm">
+              <div className="text-center py-16 text-[#6E6E6E] text-sm">
                 Aún no hay registros en esta sesión.
                 <br />Ve a la pestaña Escanear para empezar.
               </div>
@@ -3264,7 +3264,7 @@ export default function InventarioApp() {
             {escaneos.length > 0 && (
               <button
                 onClick={() => { setUltimoError(null); setMostrarSync(true); }}
-                className="w-full bg-[#161D14] border border-[#E2231A] text-[#E2231A] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 mt-2"
+                className="w-full bg-white border border-[#E2231A] text-[#E2231A] font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 mt-2"
               >
                 <CloudUpload size={18} /> Terminar conteo y sincronizar
               </button>
@@ -3274,7 +3274,7 @@ export default function InventarioApp() {
 
         {vista === "comparacion" && (
           <div className="space-y-3">
-            <div className="text-xs text-[#8A9389] mb-1">
+            <div className="text-xs text-[#4A4A4A] mb-1">
               {esTPM
                 ? "Sumando todos los lotes/fechas por SKU y comparando contra el stock teórico"
                 : "Comparando contra la base de datos / stock SAP"}
@@ -3283,9 +3283,9 @@ export default function InventarioApp() {
               <ComparacionFila key={c.sku} c={c} esTPM={esTPM} />
             ))}
             <div className="pt-2 grid grid-cols-3 gap-2 text-center">
-              <Resumen label="Coinciden" value={comparacion.filter((c) => c.tipo === "ok").length} color="#9FD3A6" />
-              <Resumen label="Faltantes" value={comparacion.filter((c) => c.tipo === "faltante").length} color="#E8A8A8" />
-              <Resumen label="Sobrantes" value={comparacion.filter((c) => c.tipo === "sobrante").length} color="#F2C879" />
+              <Resumen label="Coinciden" value={comparacion.filter((c) => c.tipo === "ok").length} color="#1F7A3D" />
+              <Resumen label="Faltantes" value={comparacion.filter((c) => c.tipo === "faltante").length} color="#B3261E" />
+              <Resumen label="Sobrantes" value={comparacion.filter((c) => c.tipo === "sobrante").length} color="#8A5A00" />
             </div>
           </div>
         )}
@@ -3304,16 +3304,16 @@ export default function InventarioApp() {
 
       {(mostrarUbicacionSesion || !ubicacionSesion) && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-[#161D14] border border-[#2A332C] rounded-t-2xl sm:rounded-2xl w-full max-w-md p-5 space-y-4">
+          <div className="bg-white border border-[#C4C4C4] rounded-t-2xl sm:rounded-2xl w-full max-w-md p-5 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-[11px] text-[#8A9389] tracking-wide">UBICACIÓN DE LA SESIÓN</div>
+                <div className="text-[11px] text-[#4A4A4A] tracking-wide">UBICACIÓN DE LA SESIÓN</div>
                 {!ubicacionSesion && (
-                  <div className="text-[11px] text-[#F2C879] mt-1">Elige tu zona antes de empezar a contar — es obligatorio.</div>
+                  <div className="text-[11px] text-[#8A5A00] mt-1">Elige tu zona antes de empezar a contar — es obligatorio.</div>
                 )}
               </div>
               {ubicacionSesion && (
-                <button onClick={() => setMostrarUbicacionSesion(false)} className="text-[#6E776A] hover:text-[#EDEAE2]">
+                <button onClick={() => setMostrarUbicacionSesion(false)} className="text-[#6E6E6E] hover:text-[#1A1A1A]">
                   <X size={20} />
                 </button>
               )}
@@ -3408,14 +3408,14 @@ export default function InventarioApp() {
 
       {sincronizado && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-[#161D14] border border-[#2A332C] rounded-2xl w-full max-w-sm p-6 text-center space-y-3">
-            <div className="w-14 h-14 rounded-full bg-[#15201A] flex items-center justify-center mx-auto">
-              <CheckCircle2 size={28} className="text-[#9FD3A6]" />
+          <div className="bg-white border border-[#C4C4C4] rounded-2xl w-full max-w-sm p-6 text-center space-y-3">
+            <div className="w-14 h-14 rounded-full bg-[#EAF5EC] flex items-center justify-center mx-auto">
+              <CheckCircle2 size={28} className="text-[#1F7A3D]" />
             </div>
-            <div className="font-bold text-lg text-[#EDEAE2]">Sincronizado</div>
-            <div className="text-sm text-[#8A9389]">
+            <div className="font-bold text-lg text-[#1A1A1A]">Sincronizado</div>
+            <div className="text-sm text-[#4A4A4A]">
               {escaneos.length} registros enviados por<br />
-              <span className="text-[#EDEAE2] font-semibold">{sincronizado.nombre}</span>
+              <span className="text-[#1A1A1A] font-semibold">{sincronizado.nombre}</span>
             </div>
             <button
               onClick={reiniciarSesion}
@@ -3510,20 +3510,20 @@ function FiltroRevision({ escaneos, catalogo, onEliminar }) {
         resumen.length > 0 ? (
           <div className="space-y-1.5">
             {resumen.map((r) => (
-              <div key={r.sku} className="bg-[#161D14] border border-[#2A332C] rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+              <div key={r.sku} className="bg-white border border-[#C4C4C4] rounded-lg px-3 py-2 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <span className="mono text-xs font-bold text-[#E2231A]">{r.sku}</span>
-                  <span className="text-xs text-[#C9CFC5] ml-1.5 truncate">{r.nombre}</span>
+                  <span className="text-xs text-[#4A4A4A] ml-1.5 truncate">{r.nombre}</span>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="mono text-base font-bold text-[#9FD3A6]">{Math.round(r.total)}</div>
-                  <div className="text-[9px] text-[#6E776A] tracking-wide">{r.registros} registro{r.registros !== 1 ? "s" : ""}</div>
+                  <div className="mono text-base font-bold text-[#1F7A3D]">{Math.round(r.total)}</div>
+                  <div className="text-[9px] text-[#6E6E6E] tracking-wide">{r.registros} registro{r.registros !== 1 ? "s" : ""}</div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-4 text-[#6E776A] text-xs">Nada capturado todavía que coincida con "{filtro}".</div>
+          <div className="text-center py-4 text-[#6E6E6E] text-xs">Nada capturado todavía que coincida con "{filtro}".</div>
         )
       )}
 
@@ -3548,8 +3548,8 @@ function EscaneoDetalle({ e, compact, catalogo }) {
   // "compact" = tarjetas de la pestaña Revisar, que ahora tienen fondo gris
   // claro (para verse bien con sol directo) — por eso usan texto oscuro en
   // vez del texto claro que se usa sobre las tarjetas de fondo oscuro.
-  const colorTexto = compact ? "#1A1A1A" : "#EDEAE2";
-  const colorSecundario = compact ? "#4A4A4A" : "#8A9389";
+  const colorTexto = compact ? "#1A1A1A" : "#1A1A1A";
+  const colorSecundario = compact ? "#4A4A4A" : "#4A4A4A";
   const colorChevron = compact ? "#8A8A8A" : "#4A524A";
   return (
     <div className={compact ? "flex-1" : ""}>
@@ -3557,12 +3557,12 @@ function EscaneoDetalle({ e, compact, catalogo }) {
         <span className="mono text-sm font-bold text-[#E2231A]">{e.productoId}</span>
         <ChevronRight size={12} style={{ color: colorChevron }} />
         <span className="text-sm" style={{ color: colorTexto }}>{nombre}</span>
-        {e.esManual && <span className="text-[9px] bg-[#2A2418] text-[#F2C879] px-1.5 py-0.5 rounded-full tracking-wide">MANUAL</span>}
-        {e.esImplicito && <span className="text-[9px] bg-[#15201A] text-[#9FD3A6] px-1.5 py-0.5 rounded-full tracking-wide">AUTO · de {e.deSku}</span>}
-        {e.estado && <span className="text-[9px] bg-[#1B2119] text-[#C9CFC5] px-1.5 py-0.5 rounded-full tracking-wide">{e.estado}</span>}
+        {e.esManual && <span className="text-[9px] bg-[#FFF3D6] text-[#8A5A00] px-1.5 py-0.5 rounded-full tracking-wide">MANUAL</span>}
+        {e.esImplicito && <span className="text-[9px] bg-[#EAF5EC] text-[#1F7A3D] px-1.5 py-0.5 rounded-full tracking-wide">AUTO · de {e.deSku}</span>}
+        {e.estado && <span className="text-[9px] bg-[#F0F0F0] text-[#4A4A4A] px-1.5 py-0.5 rounded-full tracking-wide">{e.estado}</span>}
       </div>
       <div className="flex items-center gap-2 mt-2 flex-wrap">
-        <span className="mono text-base font-bold" style={{ color: compact ? "#1F7A3D" : "#9FD3A6" }}>{Math.round(e.cantidad)}</span>
+        <span className="mono text-base font-bold" style={{ color: compact ? "#1F7A3D" : "#1F7A3D" }}>{Math.round(e.cantidad)}</span>
         <span className="text-xs" style={{ color: colorSecundario }}>{e.unidad === "piezas" ? "piezas" : "cajas"}</span>
         {e.tarimasCapturadas != null && e.cajasXTarima && (
           <span className="mono text-sm font-bold text-white bg-[#1A1A1A] px-2 py-0.5 rounded-md">
@@ -3577,12 +3577,12 @@ function EscaneoDetalle({ e, compact, catalogo }) {
         {e.ubicacion && <span className="flex items-center gap-1 text-[11px] ml-1" style={{ color: colorSecundario }}><MapPin size={11} /> {e.ubicacion}</span>}
       </div>
       {e.agrupadorCaducidad ? (
-        <div className={`mt-2 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full ${venceProto ? "bg-[#3A2A18] text-[#F2C879]" : "bg-[#1B2119] text-[#8A9389]"}`}>
+        <div className={`mt-2 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full ${venceProto ? "bg-[#FFF3D6] text-[#8A5A00]" : "bg-[#F0F0F0] text-[#4A4A4A]"}`}>
           {venceProto && <AlertTriangle size={10} />}
           Caduca {formatFecha(e.agrupadorCaducidad)} · {dias} días
         </div>
       ) : !compact && e.unidad !== "piezas" ? (
-        <div className="mt-2 text-[10px] text-[#6E776A]">Sin fecha (conteo físico vs. teórico)</div>
+        <div className="mt-2 text-[10px] text-[#6E6E6E]">Sin fecha (conteo físico vs. teórico)</div>
       ) : null}
     </div>
   );
@@ -3590,29 +3590,29 @@ function EscaneoDetalle({ e, compact, catalogo }) {
 
 function ComparacionFila({ c, esTPM }) {
   const config = {
-    ok: { icon: CheckCircle2, color: "#9FD3A6", bg: "#15201A", label: "Coincide" },
-    faltante: { icon: XCircle, color: "#E8A8A8", bg: "#241616", label: `Faltan ${Math.abs(c.diferencia)}` },
-    sobrante: { icon: AlertTriangle, color: "#F2C879", bg: "#241F14", label: `Sobran ${c.diferencia}` },
-    no_catalogado: { icon: AlertTriangle, color: "#8A9389", bg: "#1B2119", label: "Sin base" },
+    ok: { icon: CheckCircle2, color: "#1F7A3D", bg: "#15201A", label: "Coincide" },
+    faltante: { icon: XCircle, color: "#B3261E", bg: "#241616", label: `Faltan ${Math.abs(c.diferencia)}` },
+    sobrante: { icon: AlertTriangle, color: "#8A5A00", bg: "#241F14", label: `Sobran ${c.diferencia}` },
+    no_catalogado: { icon: AlertTriangle, color: "#4A4A4A", bg: "#EDEDED", label: "Sin base" },
   }[c.tipo];
   const Icon = config.icon;
   return (
-    <div className="rounded-xl border border-[#2A332C] p-3.5" style={{ backgroundColor: config.bg }}>
+    <div className="rounded-xl border border-[#C4C4C4] p-3.5" style={{ backgroundColor: config.bg }}>
       <div className="flex items-center gap-3">
         <Icon size={20} style={{ color: config.color }} className="shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate" style={{ color: "#EDEAE2" }}>{c.nombre}</div>
-          <div className="mono text-[11px] mt-0.5" style={{ color: "#8A9389" }}>
+          <div className="text-sm font-medium truncate" style={{ color: "#1A1A1A" }}>{c.nombre}</div>
+          <div className="mono text-[11px] mt-0.5" style={{ color: "#4A4A4A" }}>
             SKU {c.sku} · Stock: {c.stockSap} · Contado: {c.escaneado}
           </div>
         </div>
         <div className="text-xs font-bold shrink-0" style={{ color: config.color }}>{config.label}</div>
       </div>
       {esTPM && c.lotes.length > 1 && (
-        <div className="mt-2.5 pt-2.5 border-t border-[#2A332C]/60 space-y-1">
-          <div className="text-[10px] tracking-wide mb-1" style={{ color: "#6E776A" }}>{c.lotes.length} LOTES</div>
+        <div className="mt-2.5 pt-2.5 border-t border-[#C4C4C4]/60 space-y-1">
+          <div className="text-[10px] tracking-wide mb-1" style={{ color: "#6E6E6E" }}>{c.lotes.length} LOTES</div>
           {c.lotes.map((l, i) => (
-            <div key={i} className="flex justify-between text-[11px] mono" style={{ color: "#8A9389" }}>
+            <div key={i} className="flex justify-between text-[11px] mono" style={{ color: "#4A4A4A" }}>
               <span>{formatFecha(l.fecha)}</span>
               <span style={{ color: "#C9CFC5" }}>{Math.round(l.cantidad)}</span>
             </div>
@@ -3625,9 +3625,9 @@ function ComparacionFila({ c, esTPM }) {
 
 function Resumen({ label, value, color }) {
   return (
-    <div className="bg-[#161D14] border border-[#2A332C] rounded-xl py-3">
+    <div className="bg-white border border-[#C4C4C4] rounded-xl py-3">
       <div className="text-2xl font-bold mono" style={{ color }}>{value}</div>
-      <div className="text-[10px] text-[#8A9389] mt-0.5">{label}</div>
+      <div className="text-[10px] text-[#4A4A4A] mt-0.5">{label}</div>
     </div>
   );
 }
