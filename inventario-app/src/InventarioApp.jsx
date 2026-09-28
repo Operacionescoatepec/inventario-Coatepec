@@ -2995,6 +2995,11 @@ export default function InventarioApp() {
 
   const eliminarEscaneo = (id) => setEscaneos((prev) => prev.filter((e) => e.id !== id));
 
+  // Igual que eliminarEscaneo: solo corrige el estado local. El registro
+  // se sube a Supabase hasta que se sincroniza, así que no hace falta
+  // ningún UPDATE aquí — nada más se cambian los campos indicados.
+  const editarEscaneo = (id, cambios) => setEscaneos((prev) => prev.map((e) => (e.id === id ? { ...e, ...cambios } : e)));
+
   // --- Cálculo de cajas equivalentes por producto (PT) o piezas por producto (retornables) ---
   const totalesPorSku = useMemo(() => {
     return escaneos.reduce((acc, e) => {
@@ -3259,7 +3264,7 @@ export default function InventarioApp() {
               </div>
             )}
             {escaneos.length > 0 && (
-              <FiltroRevision escaneos={escaneos} catalogo={catalogoActivo} onEliminar={eliminarEscaneo} />
+              <FiltroRevision escaneos={escaneos} catalogo={catalogoActivo} onEliminar={eliminarEscaneo} onEditar={editarEscaneo} />
             )}
             {escaneos.length > 0 && (
               <button
@@ -3436,9 +3441,11 @@ export default function InventarioApp() {
 // nombre, muestra sugerencias de lo ya capturado en esta sesión, y da un
 // resumen rápido (total sumado + número de registros) para lo que haga
 // match, además de achicar la lista de abajo a solo esos registros.
-function FiltroRevision({ escaneos, catalogo, onEliminar }) {
+function FiltroRevision({ escaneos, catalogo, onEliminar, onEditar }) {
   const [filtro, setFiltro] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+  // id del registro que se está editando en este momento (uno a la vez)
+  const [editandoId, setEditandoId] = useState(null);
 
   const nombreDe = (e) => e.nombre || catalogo?.[e.productoId]?.nombre || "";
 
@@ -3529,13 +3536,71 @@ function FiltroRevision({ escaneos, catalogo, onEliminar }) {
 
       <div className="space-y-3">
         {escaneosFiltrados.map((e) => (
-          <div key={e.id} className="bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-3.5 flex items-start justify-between gap-3">
-            <EscaneoDetalle e={e} compact catalogo={catalogo} />
-            <button onClick={() => onEliminar(e.id)} className="text-[#8A8A8A] hover:text-[#E2231A] shrink-0 mt-0.5">
-              <Trash2 size={16} />
-            </button>
-          </div>
+          editandoId === e.id ? (
+            <EdicionUbicacionInline
+              key={e.id}
+              escaneo={e}
+              catalogo={catalogo}
+              onGuardar={(cambios) => { onEditar(e.id, cambios); setEditandoId(null); }}
+              onCancelar={() => setEditandoId(null)}
+            />
+          ) : (
+            <div key={e.id} className="bg-white border border-[#EEEEEE] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-3.5 flex items-start justify-between gap-3">
+              <EscaneoDetalle e={e} compact catalogo={catalogo} />
+              <div className="flex items-center gap-3 shrink-0 mt-0.5">
+                <button onClick={() => setEditandoId(e.id)} className="text-[#8A8A8A] hover:text-[#E2231A]">
+                  <PenLine size={16} />
+                </button>
+                <button onClick={() => onEliminar(e.id)} className="text-[#8A8A8A] hover:text-[#E2231A]">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          )
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
+// Edición en línea de un registro ya capturado, directo en la pestaña
+// Revisar — pensada para el caso típico de "se me olvidó cambiar la
+// ubicación": corrige el registro sin tener que borrarlo y volver a
+// capturarlo desde cero. Como los registros de "escaneos" solo viven en
+// el dispositivo hasta que se sincronizan (el insert a Supabase pasa hasta
+// el botón Sincronizar), esto solo corrige el estado local — no hace
+// falta ningún UPDATE a la base de datos.
+// ===========================================================================
+function EdicionUbicacionInline({ escaneo, catalogo, onGuardar, onCancelar }) {
+  const [ubicacion, setUbicacion] = useState(
+    UBICACIONES_DEMO.includes(escaneo.ubicacion) ? escaneo.ubicacion : (escaneo.ubicacion ? "Otros" : "")
+  );
+  const [ubicacionLibre, setUbicacionLibre] = useState(
+    UBICACIONES_DEMO.includes(escaneo.ubicacion) ? "" : (escaneo.ubicacion || "")
+  );
+  const nombre = escaneo.nombre || catalogo?.[escaneo.productoId]?.nombre || "";
+
+  const guardar = () => {
+    const ubicacionFinal = ubicacion === "Otros" ? (ubicacionLibre.trim() || "Otros") : ubicacion;
+    if (!ubicacionFinal) return;
+    onGuardar({ ubicacion: ubicacionFinal });
+  };
+
+  return (
+    <div className="bg-white border-2 border-[#E2231A] rounded-2xl shadow-[0_2px_14px_rgba(0,0,0,0.08)] p-3.5 space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="mono text-sm font-bold text-[#E2231A]">{escaneo.productoId}</span>
+        <span className="text-sm text-[#1A1A1A]">{nombre}</span>
+      </div>
+      <SelectorUbicacion ubicacion={ubicacion} setUbicacion={setUbicacion} ubicacionLibre={ubicacionLibre} setUbicacionLibre={setUbicacionLibre} claro />
+      <div className="flex items-center gap-2 pt-1">
+        <button onClick={onCancelar} className="flex-1 py-2.5 rounded-lg text-sm font-bold text-[#4A4A4A] bg-[#F0F0F0]">
+          Cancelar
+        </button>
+        <button onClick={guardar} className="flex-1 py-2.5 rounded-lg text-sm font-bold text-white bg-[#E2231A]">
+          Guardar
+        </button>
       </div>
     </div>
   );
